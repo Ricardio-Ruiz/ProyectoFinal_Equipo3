@@ -1,0 +1,185 @@
+# Blender 5.2.0 LTS MTL File: 'cuarto.blend'
+# www.blender.org
+
+newmtl Ash_Wood
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd WoodQuarteredChiffon001_GLOSS_3K.jpg
+
+newmtl Curtain_SSS
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd tela.jpg
+
+newmtl Curtain_Thicker
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd WoodQuarteredChiffon001_COL_3K.jpg
+map_Bump -bm 1.000000 source/BlenderGuru_Curtains/textures/LineArt_Normal.jpg
+
+newmtl Curtain_Underside
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd tela.jpg
+
+newmtl Material.001
+Ns 105.920654
+Ka 0.938182 0.938182 0.938182
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd -s -5 -5 -5 source/Towel_diffuse2.jpg
+
+newmtl Material.002
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Captura de pantalla 2026-09-26 215227.png
+
+newmtl Material.003
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Captura de pantalla 2026-09-26 215227.png
+
+newmtl Material.005
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd tela.jpg
+
+newmtl Material.006
+Ns 0.000000
+Ka 0.720000 0.720000 0.720000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd source/WoodQuarteredChiffon001_COL_3K.jpg
+map_Bump -bm 1.000000 ../../../../../../Blender Library/Poliigon material/Wood/WoodQuarteredChiffon001/WoodQuarteredChiffon001_NRM16_3K.tif
+
+newmtl Material.019
+Ns 490.000000
+Ka 0.763636 0.763636 0.763636
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd Towel_diffuse2.jpg
+
+newmtl Plastic_Handle_material
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.082000 0.079000 0.020000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+
+newmtl Sill_material
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd WoodQuarteredChiffon001_COL_3K.jpg
+
+newmtl Window_material
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Captura de pantalla 2026-09-26 215227.png
+
+newmtl ground
+Ns 21.689249
+Ka 0.272727 0.272727 0.272727
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd source/WoodQuarteredChiffon001_COL_3K.jpg
+
+newmtl leaves
+Ns 391.193390
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd source/plant1.png
+map_d source/plant1.png
+
+newmtl mirror
+Ns 17.137190
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Captura de pantalla 2026-09-26 215227.png
+
+newmtl pot_concrete
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd source/floor.png
+map_Ns source/floor.png
+map_Bump -bm 1.000000 source/assets/models/house_plant_1411646e-8080-4807-9fef-4d5bbae44cb2/textures_1k/Concrete034_4K_Normal.jpg
+
+newmtl wall
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd WoodQuarteredChiffon001_COL_3K - copiadeswa - copia.jpg

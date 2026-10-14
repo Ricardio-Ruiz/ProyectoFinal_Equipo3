@@ -1,0 +1,12 @@
+# Blender 5.2.0 LTS MTL File: 'perro.blend'
+# www.blender.org
+
+newmtl RedDog_Red_Dog_Default
+Ns 39.999996
+Ka 1.000000 1.000000 1.000000
+Ks 0.200000 0.200000 0.200000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 9
+map_Kd Texture_albedo.jpg

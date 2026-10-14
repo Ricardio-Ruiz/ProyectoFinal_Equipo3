@@ -1,0 +1,35 @@
+# Blender 5.2.0 LTS MTL File: 'metroid.blend'
+# www.blender.org
+
+newmtl metroid_dec_low:Top
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.580357
+illum 9
+map_Kd t_metroid_Top_BaseColor.png
+map_Ns t_metroid_Top_Roughness.png
+map_refl t_metroid_Top_Metallic.png
+
+newmtl metroid_dec_low:body
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd t_metroid_body_BaseColor.png
+map_Ns t_metroid_body_Roughness.png
+map_refl t_metroid_body_Metallic.png
+
+newmtl metroid_dec_low:talons
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd t_metroid_talons_BaseColor.png
+map_Ns t_metroid_talons_Roughness.png
+map_refl t_metroid_talons_Metallic.png
