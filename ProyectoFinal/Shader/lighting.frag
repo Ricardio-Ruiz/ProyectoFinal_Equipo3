@@ -1,6 +1,7 @@
 #version 330 core
 
-#define NUMBER_OF_POINT_LIGHTS 4        //cant de luces
+#define NUMBER_OF_POINT_LIGHTS 7        //cant de luces
+#define NUMBER_OF_SPOT_LIGHTS 2
 
 struct Material
 {
@@ -56,7 +57,8 @@ out vec4 color;
 uniform vec3 viewPos;
 uniform DirLight dirLight;
 uniform PointLight pointLights[NUMBER_OF_POINT_LIGHTS];
-uniform SpotLight spotLight;
+//uniform SpotLight spotLight;                                                        //no
+uniform SpotLight spotLights[NUMBER_OF_SPOT_LIGHTS];                               //<--- si
 uniform Material material;
 uniform int transparency;       //Para reconocer las texturas con transparencia
 
@@ -80,10 +82,15 @@ void main( )
         result += CalcPointLight( pointLights[i], norm, FragPos, viewDir );
     }
     
-    // Spot light
-    result += CalcSpotLight( spotLight, norm, FragPos, viewDir );
- 	
-    color = vec4( result,texture(material.diffuse, TexCoords).rgb ); 
+    // Spot lights
+    for ( int i = 0; i < NUMBER_OF_SPOT_LIGHTS; i++ )
+    {
+        result += CalcSpotLight( spotLights[i], norm, FragPos, viewDir );
+    }
+
+    //combinar ahora si los resultados 	
+    //color = vec4( result,texture(material.diffuse, TexCoords).rgb ); 
+    color = vec4( result, texture(material.diffuse, TexCoords).a );         //combinar con canal alfa de la textura difusa
 	  if(color.a < 0.1 && transparency==1)      //activsción del canal Alfa para la transparencia
         discard;
 

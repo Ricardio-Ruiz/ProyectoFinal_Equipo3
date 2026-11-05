@@ -147,7 +147,7 @@
     <None Include="Shader\modelLoading.vs" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="fuentesDeLuz.cpp" />
+    <ClCompile Include="ProyectoFinal_Equipo3 - beta.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

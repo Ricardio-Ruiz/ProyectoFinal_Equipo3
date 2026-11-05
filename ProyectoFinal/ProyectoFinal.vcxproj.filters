@@ -46,7 +46,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="fuentesDeLuz.cpp">
+    <ClCompile Include="ProyectoFinal_Equipo3 - beta.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
