@@ -458,6 +458,15 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
     if (key == GLFW_KEY_F && action == GLFW_PRESS) {
         activarLinterna = !activarLinterna;
     }
+
+
+    //Imprimee coordenadas en la consola (boton P) para mapear la zona <---
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+        std::cout << "Borde -> X: " << camera.GetPosition().x
+            << " | Y: " << camera.GetPosition().y
+            << " | Z: " << camera.GetPosition().z << std::endl;
+    }
+
 }
 
 void MouseCallback(GLFWwindow *window, double xPos, double yPos) {
