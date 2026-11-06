@@ -400,25 +400,192 @@ void Animation() {
 // =========================================================================
 // INPUTS Y CÁMARA
 // =========================================================================
-void DoMovement() {
-    // Cámara WASD
+//void DoMovement() {                                                         //Cam libre
+//    // Cámara WASD
+//    if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
+//    if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
+//    if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
+//    if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);
+//
+//    // Grabación Keyframes (Controles para mover el modelo genérico)
+//    if (keys[GLFW_KEY_UP]) objPosZ -= 2.0f * deltaTime;
+//    if (keys[GLFW_KEY_DOWN]) objPosZ += 2.0f * deltaTime;
+//    if (keys[GLFW_KEY_LEFT]) objPosX -= 2.0f * deltaTime;
+//    if (keys[GLFW_KEY_RIGHT]) objPosX += 2.0f * deltaTime;
+//    if (keys[GLFW_KEY_U]) art1 += 50.0f * deltaTime;
+//    if (keys[GLFW_KEY_J]) art1 -= 50.0f * deltaTime;
+//
+//    // Archivos de Animación
+//    if (keys[GLFW_KEY_F1]) saveFramesToFile();
+//    if (keys[GLFW_KEY_F2]) loadFramesFromFile();
+//}
+
+void DoMovement() {                                                         //Cam 1ra perdsona
+    //Guarda la posicion ANTES de movernos (para poder revertirla si chocamos)
+    glm::vec3 oldPos = camera.GetPosition();
+    //Movimiento WASD
     if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
     if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
     if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);
+    //revisa a donde intentoo moverse la cámara
+    glm::vec3 newPos = camera.GetPosition();
+    float fX = newPos.x;
+    float fZ = newPos.z;
 
-    // Grabación Keyframes (Controles para mover el modelo genérico)
-    if (keys[GLFW_KEY_UP]) objPosZ -= 2.0f * deltaTime;
-    if (keys[GLFW_KEY_DOWN]) objPosZ += 2.0f * deltaTime;
-    if (keys[GLFW_KEY_LEFT]) objPosX -= 2.0f * deltaTime;
-    if (keys[GLFW_KEY_RIGHT]) objPosX += 2.0f * deltaTime;
-    if (keys[GLFW_KEY_U]) art1 += 50.0f * deltaTime;
-    if (keys[GLFW_KEY_J]) art1 -= 50.0f * deltaTime;
+    bool zonaValida = false;
+    float alturaSuelo = oldPos.y; // Altura por defecto
+    // ---- ZONASD E LA CHINAMPA A --- - - - - - - - - - - - - - - - - - - - - - - - - - 
+    //  Chinampa A (Blanco)
+    if (fX >= -122.0f && fX <= -55.0f && fZ >= -9.0f && fZ <= 32.0f) {
+        zonaValida = true;
+        alturaSuelo = 17.5f;
+    }
+    // Muelle Rojo 
+    else if (fX >= -154.0f && fX <= -121.0f && fZ >= 7.0f && fZ <= 10.5f) {
+        zonaValida = true;
+        alturaSuelo = 10.8f;
+    }
+    // Muelle Azul 
+    else if (fX >= -139.0f && fX <= -134.0f && fZ >= -2.5f && fZ <= 7.5f) {
+        zonaValida = true;
+        alturaSuelo = 10.8f;
+    }
+    // Puente Amarillo 
+    else if (fX >= -59.0f && fX <= -27.0f && fZ >= 6.0f && fZ <= 12.0f) {
+        zonaValida = true;
+        alturaSuelo = 19.0f;
+    }
 
-    // Archivos de Animación
-    if (keys[GLFW_KEY_F1]) saveFramesToFile();
-    if (keys[GLFW_KEY_F2]) loadFramesFromFile();
+    // --- ZONAS DE LA CHINAMPA B --- - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Chinampa B (Rojo)
+    else if (fX >= -27.8f && fX <= 154.3f && fZ >= -105.0f && fZ <= 12.0f) {
+        zonaValida = true;
+        alturaSuelo = 20.0f; // Altura promedio de la Chinampa B
+    }
+    // Chinampa B - Parte faltante (Rojo en la segunda imagen)
+            // debe estar más o menos en: X: 11 a 31, Z: 10 a 35 (para tocar la principal).
+    else if (fX >= 0.0f && fX <= 31.0f && fZ >= 12.0f && fZ <= 30.0f) {
+        zonaValida = true;
+        alturaSuelo = 17.5f; // Misma altura que la principal para fluidez
+    }
+    //Parte baja 1 (Azul)
+    else if (fX >= 185.0f && fX <= 198.8f && fZ >= -130.4f && fZ <= -114.5f) {
+        zonaValida = true;
+        alturaSuelo = 17.5f;
+    }
+    //Parte baja 2 (Amarillo)
+    else if (fX >= 110.0f && fX <= 185.0f && fZ >= -132.1f && fZ <= -105.0f) {          // Faltsa conectar
+        zonaValida = true;
+        alturaSuelo = 17.5f;
+    }
+
+    //MUELLES DE LA CHINAMPA B 
+    //Muelle parte 1 (Blanco en la primera imagen)
+    else if (fX >= 5.5f && fX <= 11.5f && fZ >= 30.0f && fZ <= 69.7f) {
+        zonaValida = true;
+        alturaSuelo = 10.8f; 
+    }
+    //Muelle parte 4 (Azul en la segunda imagen)
+    else if (fX >= 11.0f && fX <= 30.5f && fZ >= 31.0f && fZ <= 40.5f) {
+        zonaValida = true;
+        alturaSuelo = 10.8f;
+    }
+    //ZONA 11: Muelle parte 3 (Amarillo en la segunda imagen)
+    else if (fX >= -3.0f && fX <= 7.0f && fZ >= 46.5f && fZ <= 50.5f) {
+        zonaValida = true;
+        alturaSuelo = 10.8f;
+    }
+    //ZONA 12: Muelle parte 2 (Blanco en la segunda imagen)
+    else if (fX >= 11.0f && fX <= 20.5f && fZ >= 59.5f && fZ <= 63.5f) {
+        zonaValida = true;
+        alturaSuelo = 10.8f;
+    }
+
+
+
+
+
+
+    // --- NUEVAS ZONAS CALCULADAS (Rojo) --- REVISAR92262d2s8c2s2ce2cs-982c-8c-a82c+av2d16ad21v8ad12ca51v6aev-8av1av51ad65v1ad6v1de16v51va16a <<<---
+
+    // Puente Central (Conecta Chinampa B con Chinampa C)
+    else if (fX >= 154.0f && fX <= 198.0f && fZ >= -35.0f && fZ <= -20.0f) {
+        zonaValida = true;
+        alturaSuelo = 20.0f; // Asumiendo altura similar a la Chinampa B
+    }
+
+    // Chinampa C (Superior Derecha)
+    else if (fX >= 197.0f && fX <= 330.0f && fZ >= -70.0f && fZ <= 25.0f) {
+        zonaValida = true;
+        alturaSuelo = 20.0f;
+    }
+
+    // Puente a Chinampa D (Diagonal, aproximado como rectángulo)
+    else if (fX >= 180.0f && fX <= 210.0f && fZ >= 20.0f && fZ <= 60.0f) {
+        zonaValida = true;
+        alturaSuelo = 15.0f; // Asumiendo bajada
+    }
+
+    // Chinampa D - Parte Alta (Inferior Derecha)
+    else if (fX >= 165.0f && fX <= 245.0f && fZ >= 55.0f && fZ <= 100.0f) {
+        zonaValida = true;
+        alturaSuelo = 15.0f;
+    }
+
+    // Chinampa D - Puente Interno (Conecta zona alta y baja de la isla)
+    else if (fX >= 180.0f && fX <= 215.0f && fZ >= 95.0f && fZ <= 115.0f) {
+        zonaValida = true;
+        alturaSuelo = 12.0f; // Bajando a la zona inferior
+    }
+
+    // Chinampa D - Parte Baja (Cuadrado inferior)
+    else if (fX >= 120.0f && fX <= 250.0f && fZ >= 110.0f && fZ <= 210.0f) {
+        zonaValida = true;
+        alturaSuelo = 10.0f;
+    }
+
+    // Puente Inferior Pequeño (Conecta hacia el muelle inferior)
+    else if (fX >= 150.0f && fX <= 180.0f && fZ >= 205.0f && fZ <= 240.0f) {
+        zonaValida = true;
+        alturaSuelo = 9.0f;
+    }
+
+    // Muelle Inferior (La base roja más baja)
+    else if (fX >= 130.0f && fX <= 200.0f && fZ >= 235.0f && fZ <= 260.0f) {
+        zonaValida = true;
+        alturaSuelo = 8.5f;
+    }
+
+    // Muelle Superior (Arriba a la derecha, saliendo de Chinampa C)
+    else if (fX >= 230.0f && fX <= 260.0f && fZ >= -120.0f && fZ <= -70.0f) {
+        zonaValida = true;
+        alturaSuelo = 18.0f;
+    }
+
+
+
+
+
+
+
+    //aplicar colisiones a la camara - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    if (zonaValida) {
+        // La camara esta en un piso seguro. se le forza su altura Y para que "camine"
+        // sumar +2.0f para simular la altura de los ojos.
+        camera.position.y = alturaSuelo + 2.0f;
+    }
+    else {
+        // Si intenta salir de las cajas invisibles, se le reverte el movimiento (como un Muro invisible)
+        camera.position = oldPos;
+    }
+
+    // ... (Aquí abajo dejas todos los controles de tu perro, luces y guardar frames que ya tenías) ...
+
 }
+
+
+
 
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
