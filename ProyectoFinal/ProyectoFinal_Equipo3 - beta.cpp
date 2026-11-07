@@ -95,7 +95,7 @@ glm::vec3 spotLightDirections[2] = {
 
 // A) Procedimental (Basada en matemáticas/tiempo)
 float waterOffset = 0.0f;
-float floatingY = 0.0f;
+float flotaY = 0.0f;
 
 // B) Máquina de Estados (Ej. Ciclo de día/noche o compuertas)
 int estadoDiaNoche = 0; // 0=Día, 1=Tarde, 2=Noche
@@ -161,6 +161,8 @@ int main()
     Model ChinampaE((char*)"Models/ZonaE/ChinampaE.obj");
     Model Chinampas((char*)"Models/Extras-Relleno/Chinampas.obj");
     
+    
+    Model agua((char*)"Models/Rio-Canales/awa.obj");
     //Model Trajinera((char*)"Models/Proyecto/Trajinera.obj");
 
     //Model Personaje((char*)"Models/Proyecto/Personaje.");
@@ -344,16 +346,29 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaE.Draw(lightingShader);
 
-        //// 2. Animación Procedimental (Agua moviéndose)
-        //model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(waterOffset, 0.0f, waterOffset)); 
-        //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1); // Agua transparente
-        //PisoAgua.Draw(lightingShader);
+        /*model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        agua.Draw(lightingShader);*/
+
+
+
+        // 2. Animación Procedimental (Agua moviéndose)==================================
+        model = glm::mat4(1.0f);
+        // Usamos 'flotaY' en el eje Y para que todo el plano suba y baje suavemente
+        model = glm::translate(model, glm::vec3(0.0f, flotaY * 0.8f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1); // Indicador de agua
+        // Enviamos waterOffset al shader para deslizar la textura (UV Scrolling)
+        glUniform1f(glGetUniformLocation(lightingShader.Program, "uvOffset"), waterOffset);
+        agua.Draw(lightingShader);
+        // Reseteamos el uvOffset a 0.0f para que no afecte a las chinampas ni al mariachi
+        glUniform1f(glGetUniformLocation(lightingShader.Program, "uvOffset"), 0.0f);
 
         //// 3. Animación Procedimental (Trajinera flotando)
         //model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(5.0f, floatingY, -5.0f));
+        //model = glm::translate(model, glm::vec3(5.0f, flotaY, -5.0f));
         //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         //Trajinera.Draw(lightingShader);
@@ -454,18 +469,26 @@ void Animation() {
     // Si se presionó alguna tecla de movimiento, oscilamos los brazos/piernas
     if (keys[GLFW_KEY_W] || keys[GLFW_KEY_S] || keys[GLFW_KEY_A] || keys[GLFW_KEY_D]) {
         float cicloCaminata = sin(glfwGetTime() * 12.0f) * 35.0f; // Amplitud de 35 grados
-        art1 = cicloCaminata;   // Brazo/Pierna Izquierda
-        art2 = -cicloCaminata;  // Brazo/Pierna Derecha (en dirección opuesta)
+        art1 = cicloCaminata;               // Brazo/Pierna Izquierda
+        art2 = -cicloCaminata;              // Brazo/Pierna Derecha (en dirección opuesta)
     }
     else {
         // Regresar suavemente a cero cuando se detenga
         art1 = 0.0f;
         art2 = 0.0f;
     }
+
+
     
     // 1. Animaciones Procedimentales
-    waterOffset = sin(glfwGetTime() * 0.5f) * 0.2f;
-    floatingY = sin(glfwGetTime() * 2.0f) * 0.1f;
+            //
+    //waterOffset = sin(glfwGetTime() * 0.5f) * 0.2f;
+    waterOffset = glfwGetTime() * -0.03f;
+            //velocidad sube/baja  |/     |/  altura
+    flotaY = sin(glfwGetTime() * 3.0f) * 0.3f;
+    //flotaY = sin(glfwGetTime() * 1.2f) * 0.05f;
+
+
 
     // 2. Animación Keyframes
     if (playAnim) {
@@ -489,6 +512,8 @@ void Animation() {
         }
     }
 }
+
+
 
 // =========================================================================
 // INPUTS Y CÁMARA
