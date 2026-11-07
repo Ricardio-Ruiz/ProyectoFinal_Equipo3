@@ -52,7 +52,6 @@ d 1.000000
 illum 2
 map_Kd Image_6.jpg
 
-
 newmtl Rope_texture_set
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
@@ -73,6 +72,7 @@ Ke 1.000000 1.000000 1.000000
 Ni 1.500000
 d 1.000000
 illum 2
+map_Kd texturas-de-la-tierra-sucia-y-mojada.png
 
 newmtl SupportBeam_texture_set
 Ns 250.000000

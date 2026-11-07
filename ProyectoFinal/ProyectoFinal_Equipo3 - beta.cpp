@@ -54,6 +54,11 @@ void interpolation();
 const GLuint WIDTH = 1280, HEIGHT = 720;
 int SCREEN_WIDTH, SCREEN_HEIGHT;
 Camera camera(glm::vec3(-120.0f, 16.0f, 10.0f)); // Posición inicial
+//Camera camera(glm::vec3(250.0f, 16.0f, -50.0f)); // Posición PRUEBA
+// Variable global para el tipo de cámara (1 = Primera persona, 2 = Tercera persona, 3 = Libre)
+int tipoCamara = 1;                 // 1 = Primera persona, 2 = Tercera persona, 3 = Libre
+
+
 GLfloat lastX = WIDTH / 2.0;
 GLfloat lastY = HEIGHT / 2.0;
 bool keys[1024];
@@ -159,6 +164,13 @@ int main()
     //Model Trajinera((char*)"Models/Proyecto/Trajinera.obj");
 
     //Model Personaje((char*)"Models/Proyecto/Personaje.");
+    // Carga de piezas del personaje
+    Model Cuerpo((char*)"Models/Personaje/cuerpo.obj");
+    Model BrazoI((char*)"Models/Personaje/brazo-iz.obj");
+    Model BrazoD((char*)"Models/Personaje/brazo-de.obj");
+    Model PiernaI((char*)"Models/Personaje/pierna-iz.obj");
+    Model PiernaD((char*)"Models/Personaje/pierna-de.obj");
+    Model zinnia((char*)"Models/Personaje/prueba.obj");
 
 
 
@@ -360,6 +372,74 @@ int main()
         //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         //Articulacion1.Draw(lightingShader);
 
+
+        // =========================================================================
+        // DIBUJADO DEL PERSONAJE JERÁRQUICO
+       
+        // Condición: Si es 1ra persona (1) Y la cámara mira un poco hacia arriba (> 0.05f)
+        bool ocultarPorSombrero = (tipoCamara == 1 && camera.GetFront().y > 0.05f);
+
+        // Solo dibujamos al mariachi si NO debemos ocultarlo
+        if (!ocultarPorSombrero) {
+            model = glm::mat4(1.0f);
+            modelTemp = glm::mat4(1.0f);
+            modelTemp = glm::translate(modelTemp, glm::vec3(objPosX, objPosY - 2.2f, objPosZ));
+            // rotar el cuepro hacia donde mira la cámara
+            modelTemp = glm::rotate(modelTemp, glm::radians(objRotY), glm::vec3(0.0f, 1.0f, 0.0f));
+            modelTemp = glm::rotate(modelTemp, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            modelTemp = glm::scale(modelTemp, glm::vec3(5.5f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTemp));
+            glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+            Cuerpo.Draw(lightingShader);
+
+            // 1. BRAZO IZQUIERDO (Hijo del Torso, rota desde el hombro)
+            glm::mat4 modelBrazoIzq = modelTemp;
+            modelBrazoIzq = glm::translate(modelBrazoIzq, glm::vec3(0.0f, 0.3f, -0.12f)); // Coordenada aproximada del hombro izquierdo
+            modelBrazoIzq = glm::rotate(modelBrazoIzq, glm::radians(art1), glm::vec3(0.0f, 0.0f, 1.0f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelBrazoIzq));
+            glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+            BrazoI.Draw(lightingShader);
+
+            // 2. BRAZO DERECHO (Hijo del Torso, rota inverso)
+            glm::mat4 modelBrazoDer = modelTemp;
+            modelBrazoDer = glm::translate(modelBrazoDer, glm::vec3(0.0f, 0.3f, 0.12f)); // Coordenada aproximada del hombro derecho
+            modelBrazoDer = glm::rotate(modelBrazoDer, glm::radians(art2), glm::vec3(0.0f, 0.0f, 1.0f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelBrazoDer));
+            glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+            BrazoD.Draw(lightingShader);
+
+            // 3. PIERNA IZQUIERDA (Hija del Torso, rota desde la cadera)
+            glm::mat4 modelPiernaIzq = modelTemp;
+            modelPiernaIzq = glm::translate(modelPiernaIzq, glm::vec3(0.0f, 0.0f, 0.0f)); // Coordenada aproximada de la cadera
+            modelPiernaIzq = glm::rotate(modelPiernaIzq, glm::radians(art2), glm::vec3(0.0f, 0.0f, 1.0f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiernaIzq));
+            glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+            PiernaI.Draw(lightingShader);
+
+            // 4. PIERNA DERECHA (Hija del Torso)
+            glm::mat4 modelPiernaDer = modelTemp;
+            modelPiernaDer = glm::translate(modelPiernaDer, glm::vec3(-0.0f, 0.0f, 0.0f)); // Coordenada aproximada de la cadera
+            modelPiernaDer = glm::rotate(modelPiernaDer, glm::radians(art1), glm::vec3(0.0f, 0.0f, 1.0f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiernaDer));
+            glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+            PiernaD.Draw(lightingShader);
+
+            //personaje prueba
+            model = glm::mat4(1.0f);
+            //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            //model = glm::scale(model, glm::vec3(3.0f, 2.0f, 2.5f));
+            //model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            zinnia.Draw(lightingShader);
+        }
+
+
+
+
+
+
+
+
         glfwSwapBuffers(window);
     }
     glfwTerminate();
@@ -370,6 +450,19 @@ int main()
 // LÓGICA DE ACTUALIZACIÓN DE ANIMACIONES
 // =========================================================================
 void Animation() {
+    //Animacion personaje
+    // Si se presionó alguna tecla de movimiento, oscilamos los brazos/piernas
+    if (keys[GLFW_KEY_W] || keys[GLFW_KEY_S] || keys[GLFW_KEY_A] || keys[GLFW_KEY_D]) {
+        float cicloCaminata = sin(glfwGetTime() * 12.0f) * 35.0f; // Amplitud de 35 grados
+        art1 = cicloCaminata;   // Brazo/Pierna Izquierda
+        art2 = -cicloCaminata;  // Brazo/Pierna Derecha (en dirección opuesta)
+    }
+    else {
+        // Regresar suavemente a cero cuando se detenga
+        art1 = 0.0f;
+        art2 = 0.0f;
+    }
+    
     // 1. Animaciones Procedimentales
     waterOffset = sin(glfwGetTime() * 0.5f) * 0.2f;
     floatingY = sin(glfwGetTime() * 2.0f) * 0.1f;
@@ -420,28 +513,82 @@ void Animation() {
 //    if (keys[GLFW_KEY_F2]) loadFramesFromFile();
 //}
 
+// Variable global para el tipo de cámara (1 = Primera persona, 2 = Tercera persona, 3 = Libre)
+//int tipoCamara = 1;
+
 void DoMovement() {                                                         //Cam 1ra perdsona
-    //Guarda la posicion ANTES de movernos (para poder revertirla si chocamos)
-    glm::vec3 oldPos = camera.GetPosition();
+    // Si el usuario selecciona Camara Libre (Modo 3), usamos el movimiento libre de la cámara
+    if (tipoCamara == 3) {
+        if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
+        if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
+        if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);
+        return; // Salimos para que no mueva al personaje ni aplique colisiones de juego
+    }
+
+    // 1. Guardar la posición ANTERIOR del personaje
+    float oldX = objPosX;
+    float oldZ = objPosZ;
+
+    float velocidad = 15.0f * deltaTime;
+
+    // Obtener hacia dónde mira la cámara para que el personaje camine en esa dirección
+    glm::vec3 frontDir = camera.GetFront();
+    frontDir.y = 0.0f; // Mantener plano en el suelo (XZ)
+    frontDir = glm::normalize(frontDir);
+
+    /*    glm::vec3 rightDir = camera.GetRight();
+        rightDir.y = 0.0f;
+        rightDir = glm::normalize(rightDir);*/
+    
+    // Calcula el vector derecho perpendicular en el plano horizontal
+    glm::vec3 rightDir = glm::cross(frontDir, glm::vec3(0.0f, 1.0f, 0.0f));
+    rightDir = glm::normalize(rightDir);
+
+        //Guarda la posicion ANTES de movernos (para poder revertirla si chocamos)
+        //glm::vec3 oldPos = camera.GetPosition();
     //Movimiento WASD
-    if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
-    if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);
-    //revisa a donde intentoo moverse la cámara
-    glm::vec3 newPos = camera.GetPosition();
-    float fX = newPos.x;
-    float fZ = newPos.z;
+    /*        if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
+            if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
+            if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
+            if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);*/
+            // Movimiento WASD aplicado al PERSONAJE (objPosX y objPosZ)
+    bool moviendo = false;
+    glm::vec3 dirMovimiento(0.0f);
+
+    if (keys[GLFW_KEY_W]) { objPosX += frontDir.x * velocidad; objPosZ += frontDir.z * velocidad; dirMovimiento += frontDir; moviendo = true; }
+    if (keys[GLFW_KEY_S]) { objPosX -= frontDir.x * velocidad; objPosZ -= frontDir.z * velocidad; dirMovimiento -= frontDir; moviendo = true; }
+    if (keys[GLFW_KEY_A]) { objPosX -= rightDir.x * velocidad; objPosZ -= rightDir.z * velocidad; dirMovimiento -= rightDir; moviendo = true; }
+    if (keys[GLFW_KEY_D]) { objPosX += rightDir.x * velocidad; objPosZ += rightDir.z * velocidad; dirMovimiento += rightDir; moviendo = true; }
+    
+
+    // Hacer que el monito gire hacia la dirección en la que se está moviendo
+    if (moviendo) {
+        dirMovimiento = glm::normalize(dirMovimiento);
+        objRotY = glm::degrees(atan2(dirMovimiento.x, dirMovimiento.z));
+    }
+
+    // 2. Revisar a dónde intentó moverse el personaje
+    float fX = objPosX;
+    float fZ = objPosZ;
+
+    ////revisa a donde intentoo moverse la cámara
+    //glm::vec3 newPos = camera.GetPosition();
+    //float fX = newPos.x;
+    //float fZ = newPos.z;
 
     bool zonaValida = false;
-    float alturaSuelo = oldPos.y; // Altura por defecto
+    float alturaSuelo = objPosY; // Altura por defecto
+
+
+    // MAPEO ============================================================================
     // ---- ZONASD E LA CHINAMPA A --- - - - - - - - - - - - - - - - - - - - - - - - - - 
     //  Chinampa A (Blanco)
     if (fX >= -122.0f && fX <= -55.0f && fZ >= -9.0f && fZ <= 32.0f) {
         zonaValida = true;
         alturaSuelo = 17.5f;
     }
-    // Muelle Rojo 
+    // Muelle Rojo - - - - - 
     else if (fX >= -154.0f && fX <= -121.0f && fZ >= 7.0f && fZ <= 10.5f) {
         zonaValida = true;
         alturaSuelo = 10.8f;
@@ -459,7 +606,7 @@ void DoMovement() {                                                         //Ca
 
     // --- ZONAS DE LA CHINAMPA B --- - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Chinampa B (Rojo)
-    else if (fX >= -27.8f && fX <= 154.3f && fZ >= -105.0f && fZ <= 12.0f) {
+    else if (fX >= -27.8f && fX <= 155.3f && fZ >= -105.0f && fZ <= 12.0f) {
         zonaValida = true;
         alturaSuelo = 20.0f; // Altura promedio de la Chinampa B
     }
@@ -479,9 +626,7 @@ void DoMovement() {                                                         //Ca
         zonaValida = true;
         alturaSuelo = 17.5f;
     }
-
-    //MUELLES DE LA CHINAMPA B 
-    //Muelle parte 1 (Blanco en la primera imagen)
+    //Muelle parte 1 (Blanco en la primera imagen) - - - - - 
     else if (fX >= 5.5f && fX <= 11.5f && fZ >= 30.0f && fZ <= 69.7f) {
         zonaValida = true;
         alturaSuelo = 10.8f; 
@@ -491,96 +636,168 @@ void DoMovement() {                                                         //Ca
         zonaValida = true;
         alturaSuelo = 10.8f;
     }
-    //ZONA 11: Muelle parte 3 (Amarillo en la segunda imagen)
+    //Muelle parte 3 (Amarillo en la segunda imagen)
     else if (fX >= -3.0f && fX <= 7.0f && fZ >= 46.5f && fZ <= 50.5f) {
         zonaValida = true;
         alturaSuelo = 10.8f;
     }
-    //ZONA 12: Muelle parte 2 (Blanco en la segunda imagen)
+    //Muelle parte 2 (Blanco en la segunda imagen)
     else if (fX >= 11.0f && fX <= 20.5f && fZ >= 59.5f && fZ <= 63.5f) {
         zonaValida = true;
         alturaSuelo = 10.8f;
     }
 
-
-
-
-
-
-    // --- NUEVAS ZONAS CALCULADAS (Rojo) --- REVISAR92262d2s8c2s2ce2cs-982c-8c-a82c+av2d16ad21v8ad12ca51v6aev-8av1av51ad65v1ad6v1de16v51va16a <<<---
-
+    // --- ZONAS DE LA CHINAMPA C --- - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Puente Central (Conecta Chinampa B con Chinampa C)
-    else if (fX >= 154.0f && fX <= 198.0f && fZ >= -35.0f && fZ <= -20.0f) {
+    else if (fX >= 154.0f && fX <= 228.0f && fZ >= -74.0f && fZ <= -66.0f) {
         zonaValida = true;
-        alturaSuelo = 20.0f; // Asumiendo altura similar a la Chinampa B
+        alturaSuelo = 21.8f; // Asumiendo altura similar a la Chinampa B
     }
-
     // Chinampa C (Superior Derecha)
-    else if (fX >= 197.0f && fX <= 330.0f && fZ >= -70.0f && fZ <= 25.0f) {
+    else if (fX >= 228.0f && fX <= 337.0f && fZ >= -118.0f && fZ <= -27.0f) {
         zonaValida = true;
         alturaSuelo = 20.0f;
     }
-
-    // Puente a Chinampa D (Diagonal, aproximado como rectángulo)
-    else if (fX >= 180.0f && fX <= 210.0f && fZ >= 20.0f && fZ <= 60.0f) {
+    // Puente norte (Conecta Chinampa C con Tierra E)
+    else if (fX >= 288.0f && fX <= 299.0f && fZ >= -150.0f && fZ <= -118.0f) {
         zonaValida = true;
-        alturaSuelo = 15.0f; // Asumiendo bajada
+        alturaSuelo = 21.8f; 
+    }
+    else if (fX >= 288.0f && fX <= 299.0f && fZ >= -180.0f && fZ <= -150.0f) {
+        zonaValida = true;
+        alturaSuelo = 20.9f;
     }
 
-    // Chinampa D - Parte Alta (Inferior Derecha)
-    else if (fX >= 165.0f && fX <= 245.0f && fZ >= 55.0f && fZ <= 100.0f) {
+    // --- ZONAS DE LA CHINAMPA D --- - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Puente a Chinampa D (Diagonal, aproximado como rectángulo) 
+    else if (fX >= 235.0f && fX <= 249.0f && fZ >= -27.0f && fZ <= -20.0f) {
         zonaValida = true;
-        alturaSuelo = 15.0f;
+        alturaSuelo = 21.0f; // Asumiendo bajada
+    }
+    else if (fX >= 228.0f && fX <= 245.0f && fZ >= -21.0f && fZ <= -5.0f) {
+        zonaValida = true;
+        alturaSuelo = 22.0f; // Asumiendo bajada
+    }
+    //Chinampa D - Parte Alta (Inferior Derecha)
+    else if (fX >= 212.0f && fX <= 238.0f && fZ >= -5.2f && fZ <= 52.0f) {
+        zonaValida = true;
+        alturaSuelo = 23.0f;
+    }
+    //chinampa D - Parte Interno (Conecta zona alta y baja de la isla)
+    else if (fX >= 133.0f && fX <= 238.0f && fZ >= 46.0f && fZ <= 90.0f) {
+        zonaValida = true;
+        alturaSuelo = 23.0f; // Bajando a la zona inferior
+    }
+    //chinampa D - Parte Baja (Cuadrado CEntral)
+    else if (fX >= 120.0f && fX <= 238.0f && fZ >= 89.0f && fZ <= 149.0f) {
+        zonaValida = true;
+        alturaSuelo = 23.0f;
+    }
+    // chinampa D (Conecta hacia la parte inferior)
+    else if (fX >= 145.0f && fX <= 175.0f && fZ >= 148.0f && fZ <= 172.0f) {
+        zonaValida = true;
+        alturaSuelo = 22.35f;
+    }
+    // chinampa D Parte inferior(La base roja más baja)
+    else if (fX >= 150.0f && fX <= 218.0f && fZ >= 172.0f && fZ <= 182.0f) {
+        zonaValida = true;
+        alturaSuelo = 21.9f;
+    }
+    // P uente entre B y D (Arriba a la derecha, saliendo de Chinampa C)
+    else if (fX >= 120.0f && fX <= 140.0f && fZ >= 12.0f && fZ <= 32.0f) {
+        zonaValida = true;
+        alturaSuelo = 21.8f;
+    }
+    else if (fX >= 134.0f && fX <= 149.0f && fZ >= 28.0f && fZ <= 48.0f) {
+        zonaValida = true;
+        alturaSuelo = 23.5f;
     }
 
-    // Chinampa D - Puente Interno (Conecta zona alta y baja de la isla)
-    else if (fX >= 180.0f && fX <= 215.0f && fZ >= 95.0f && fZ <= 115.0f) {
+    // --- ZONAS DE LA TIERRA E --- - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //muelle a C
+    else if (fX >= 288.0f && fX <= 299.0f && fZ >= -222.0f && fZ <= -180.0f) {
         zonaValida = true;
-        alturaSuelo = 12.0f; // Bajando a la zona inferior
+        alturaSuelo = 20.2f;
     }
-
-    // Chinampa D - Parte Baja (Cuadrado inferior)
-    else if (fX >= 120.0f && fX <= 250.0f && fZ >= 110.0f && fZ <= 210.0f) {
+    //muelle lateral
+    else if (fX >= 299.0f && fX <= 321.0f && fZ >= -215.0f && fZ <= -208.0f) {
         zonaValida = true;
-        alturaSuelo = 10.0f;
+        alturaSuelo = 13.0f;
     }
-
-    // Puente Inferior Pequeño (Conecta hacia el muelle inferior)
-    else if (fX >= 150.0f && fX <= 180.0f && fZ >= 205.0f && fZ <= 240.0f) {
+    // Tierra E
+    else if (fX >= -30.0f && fX <= 330.0f && fZ >= -250.0f && fZ <= -222.0f) {
         zonaValida = true;
-        alturaSuelo = 9.0f;
+        alturaSuelo = 20.0f;
     }
-
-    // Muelle Inferior (La base roja más baja)
-    else if (fX >= 130.0f && fX <= 200.0f && fZ >= 235.0f && fZ <= 260.0f) {
+    else if (fX >= -30.0f && fX <= 330.0f && fZ >= -290.0f && fZ <= -250.0f) {
         zonaValida = true;
-        alturaSuelo = 8.5f;
+        alturaSuelo = 22.0f;
     }
-
-    // Muelle Superior (Arriba a la derecha, saliendo de Chinampa C)
-    else if (fX >= 230.0f && fX <= 260.0f && fZ >= -120.0f && fZ <= -70.0f) {
+    else if (fX >= -30.0f && fX <= 330.0f && fZ >= -350.0f && fZ <= -290.0f) {
         zonaValida = true;
-        alturaSuelo = 18.0f;
+        alturaSuelo = 24.0f;
     }
+    // ==================================================================================
 
-
-
-
-
-
-
-    //aplicar colisiones a la camara - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    // 3. Aplicar colisiones al personaje
     if (zonaValida) {
-        // La camara esta en un piso seguro. se le forza su altura Y para que "camine"
-        // sumar +2.0f para simular la altura de los ojos.
-        camera.position.y = alturaSuelo + 2.0f;
+        // Si la zona es válida, alineamos la altura Y del personaje con el suelo de esa zona
+        objPosY = alturaSuelo;
     }
     else {
-        // Si intenta salir de las cajas invisibles, se le reverte el movimiento (como un Muro invisible)
-        camera.position = oldPos;
+        // Si intenta salir de las zonas válidas (choca con agua/vacío), revertimos al personaje
+        objPosX = oldX;
+        objPosZ = oldZ;
     }
 
-    // ... (Aquí abajo dejas todos los controles de tu perro, luces y guardar frames que ya tenías) ...
+    // 4. Actualizar la posición de la cámara según el modo activo (1ra, 3ra o Libre)
+    if (tipoCamara == 1) {
+        // Primera Persona: La cámara se coloca en la cabeza/ojos del personaje
+        //camera.position = glm::vec3(objPosX + 0.8, objPosY + 0.6f, objPosZ);
+            //camera.position = glm::vec3(objPosX + 0.8, (camera.GetFront().y * + 0.6f), objPosZ);
+        //camera.position = glm::vec3(objPosX + 0.8, objPosY + 0.6f + (camera.GetFront().y * 0.5f), objPosZ);
+        //camera.position = glm::vec3(objPosX, objPosY + 0.6f + (camera.GetFront().y * 0.5f), objPosZ);
+        
+        // 1. Distancia desde el origen (0,0,0) del torso hasta la cara del mariachi
+        float offsetCaraX = 0.8f; // El valor que te funcionaba antes
+        float offsetCaraY = 0.6f; // La altura que te funcionaba antes
+
+        // 2. Calculamos las coordenadas reales de la cara rotando el offsetX con objRotY
+        // (Convertimos a radianes y usamos Seno/Coseno para mover el punto en círculo)
+        float radianes = glm::radians(objRotY - 90.0f); // -90.0f compensa el offset inicial del modelo
+
+        float posCaraX = objPosX + (cos(radianes) * offsetCaraX);
+        float posCaraZ = objPosZ - (sin(radianes) * offsetCaraX);
+        float posCaraY = objPosY + offsetCaraY + (camera.GetFront().y * 0.5f); // Se ajusta al ver hacia abajo
+
+        // 3. Posicionamos la cámara exactamente en esas coordenadas calculadas
+        camera.position = glm::vec3(posCaraX, posCaraY, posCaraZ);
+    }
+    else if (tipoCamara == 2) {
+        // Tercera Persona: La cámara se coloca atrás y arriba del personaje
+        //glm::vec3 offsetCamara = camera.GetFront() * -7.0f + glm::vec3(0.0f, 2.0f, 0.0f);
+        float distanciaAtras = 7.0f;
+        glm::vec3 offsetCamara = camera.GetFront() * -distanciaAtras + glm::vec3(0.0f, 2.0f, 0.0f);
+        camera.position = glm::vec3(objPosX, objPosY, objPosZ) + offsetCamara;
+    }
+    // Si tipoCamara == 3 (Libre), puedes dejar que la cámara se mueva con su lógica libre original.
+
+
+
+
+
+    ////aplicar colisiones a la camara - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    //if (zonaValida) {
+    //    // La camara esta en un piso seguro. se le forza su altura Y para que "camine"
+    //    // sumar +2.0f para simular la altura de los ojos.
+    //    camera.position.y = alturaSuelo + 2.0f;
+    //}
+    //else {
+    //    // Si intenta salir de las cajas invisibles, se le reverte el movimiento (como un Muro invisible)
+    //    camera.position = oldPos;
+    //}
+
+    
 
 }
 
@@ -632,6 +849,17 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
         std::cout << "Borde -> X: " << camera.GetPosition().x
             << " | Y: " << camera.GetPosition().y
             << " | Z: " << camera.GetPosition().z << std::endl;
+    }
+
+
+    // Cambiar modo de cámara con la tecla C
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        tipoCamara++;
+        if (tipoCamara > 3) tipoCamara = 1; // Cicla de 1 a 3
+
+        if (tipoCamara == 1) std::cout << "Camara: Primera Persona" << std::endl;
+        else if (tipoCamara == 2) std::cout << "Camara: Tercera Persona" << std::endl;
+        else if (tipoCamara == 3) std::cout << "Camara: Libre" << std::endl;
     }
 
 }

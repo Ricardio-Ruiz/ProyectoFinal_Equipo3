@@ -88,11 +88,27 @@ void main( )
         result += CalcSpotLight( spotLights[i], norm, FragPos, viewDir );
     }
 
-    //combinar ahora si los resultados 	
-    //color = vec4( result,texture(material.diffuse, TexCoords).rgb ); 
-    color = vec4( result, texture(material.diffuse, TexCoords).a );         //combinar con canal alfa de la textura difusa
-	  if(color.a < 0.1 && transparency==1)      //activsción del canal Alfa para la transparencia
+    //        //combinar ahora si los resultados 	
+    //        //color = vec4( result,texture(material.diffuse, TexCoords).rgb ); 
+    //        color = vec4( result, texture(material.diffuse, TexCoords).a );         //combinar con canal alfa de la textura difusa
+	//          if(color.a < 0.1 && transparency==1)      //activsción del canal Alfa para la transparencia
+    //            discard;
+
+    // 1. Extraemos el canal Alpha de la textura difusa
+    float alphaVal = texture(material.diffuse, TexCoords).a;
+    
+    // 2. Si no estamos usando texturas con transparencia, forzamos el alfa a 1.0 (opaco)
+    if (transparency == 0) {
+        alphaVal = 1.0f;
+    }
+    
+    // 3. Aplicamos el color final con la luz calculada
+    color = vec4(result, alphaVal);
+    
+    // 4. Descartar solo si es una textura transparente y el alfa es casi invisible
+    if (alphaVal < 0.1 && transparency == 1) {
         discard;
+    }
 
 }
 
