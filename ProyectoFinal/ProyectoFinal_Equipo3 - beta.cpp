@@ -53,8 +53,12 @@ void interpolation();
 // Dimensiones y Cámara
 const GLuint WIDTH = 1280, HEIGHT = 720;
 int SCREEN_WIDTH, SCREEN_HEIGHT;
-Camera camera(glm::vec3(-120.0f, 16.0f, 10.0f)); // Posición inicial
+
+//Camera camera(glm::vec3(-152.0f, 11.0f, 9.0f)); // Posición inicial
+//Camera camera(glm::vec3(-120.0f, 16.0f, 10.0f));
 //Camera camera(glm::vec3(250.0f, 16.0f, -50.0f)); // Posición PRUEBA
+Camera camera(glm::vec3(-151.0f, 17.5f, 8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.0f); //para que mire hacia +x
+// 
 // Variable global para el tipo de cámara (1 = Primera persona, 2 = Tercera persona, 3 = Libre)
 int tipoCamara = 1;                 // 1 = Primera persona, 2 = Tercera persona, 3 = Libre
 
@@ -106,8 +110,13 @@ bool activarLinterna = true;
 int i_max_steps = 90;
 int i_curr_steps = 0;
 
-float objPosX = 0.0f, objPosY = 0.0f, objPosZ = 0.0f;
-float objRotY = 0.0f, art1 = 0.0f, art2 = 0.0f; // articulaciones genéricas
+//float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
+//float objPosX = 81.0f, objPosY = 0.0f, objPosZ = -39.0f;                                       //SPAWN B
+float objPosX = 280.0f, objPosY = 0.0f, objPosZ = -94.0f;                                       //SPAWN C
+//float objPosX = 191.0f, objPosY = 0.0f, objPosZ = 75.0f;                                       //SPAWN D
+//float objPosX = 294.0f, objPosY = 0.0f, objPosZ = -226.0f;                                       //SPAWN E
+
+float objRotY = 90.0f, art1 = 0.0f, art2 = 0.0f; // articulaciones genéricas
 
 typedef struct _frame {
     float objPosX, objPosY, objPosZ;
@@ -173,6 +182,14 @@ int main()
     Model PiernaI((char*)"Models/Personaje/pierna-iz.obj");
     Model PiernaD((char*)"Models/Personaje/pierna-de.obj");
     Model zinnia((char*)"Models/Personaje/prueba.obj");
+
+
+    Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
+    Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
+    Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
+    Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
+    //Model pueblo4((char*)"Models/ZonaE/camino.obj");
+
 
 
 
@@ -346,6 +363,37 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaE.Draw(lightingShader);
 
+
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo1.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo2.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo3.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo4.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+
         /*model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -392,7 +440,7 @@ int main()
         // DIBUJADO DEL PERSONAJE JERÁRQUICO
        
         // Condición: Si es 1ra persona (1) Y la cámara mira un poco hacia arriba (> 0.05f)
-        bool ocultarPorSombrero = (tipoCamara == 1 && camera.GetFront().y > 0.05f);
+        bool ocultarPorSombrero = (tipoCamara == 1 && camera.GetFront().y > 0.05f || tipoCamara == 1 && keys[GLFW_KEY_S] && camera.GetFront().y < 0.05f);
 
         // Solo dibujamos al mariachi si NO debemos ocultarlo
         if (!ocultarPorSombrero) {
@@ -749,19 +797,23 @@ void DoMovement() {                                                         //Ca
         zonaValida = true;
         alturaSuelo = 13.0f;
     }
-    // Tierra E
-    else if (fX >= -30.0f && fX <= 330.0f && fZ >= -250.0f && fZ <= -222.0f) {
+    // Tierra E camino
+    else if (fX >= 255.0f && fX <= 340.0f && fZ >= -450.0f && fZ <= -222.0f) {
         zonaValida = true;
         alturaSuelo = 20.0f;
     }
-    else if (fX >= -30.0f && fX <= 330.0f && fZ >= -290.0f && fZ <= -250.0f) {
+    else if (fX >= 85.0f && fX <= 255.0f && fZ >= -450.0f && fZ <= -370.0f) {
         zonaValida = true;
-        alturaSuelo = 22.0f;
+        alturaSuelo = 20.9f;
     }
-    else if (fX >= -30.0f && fX <= 330.0f && fZ >= -350.0f && fZ <= -290.0f) {
+    else if (fX >= -30.0f && fX <= 86.0f && fZ >= -406.0f && fZ <= -370.0f) {
         zonaValida = true;
-        alturaSuelo = 24.0f;
+        alturaSuelo = 20.0f;
     }
+    else if (fX >= -155.0f && fX <= -30.0f && fZ >= -460.0f && fZ <= -370.0f) {
+        zonaValida = true;
+        alturaSuelo = 20.0f;
+        }
     // ==================================================================================
 
     // 3. Aplicar colisiones al personaje

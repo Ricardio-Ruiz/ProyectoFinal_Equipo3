@@ -208,22 +208,42 @@ private:
 	}
 };
 
-GLint TextureFromFile(const char *path, string directory)
+
+GLint TextureFromFile(const char* path, string directory)
 {
-	//Generate texture ID and load texture data
+	// Generate texture ID and load texture data
 	string filename = string(path);
 	filename = directory + '/' + filename;
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
-	int width, height;
+	int width, height, nrComponents;
 
-	unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+	// 1. Usamos 0 (SOIL_LOAD_AUTO) para que detecte canales reales
+	unsigned char* image = SOIL_load_image(filename.c_str(), &width, &height, &nrComponents, 0);
 
-	// Assign texture to ID
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	if (image)
+	{
+		// 2. Asignamos formato dinámico (RGB o RGBA)
+		GLenum format = GL_RGB;
+		if (nrComponents == 4) {
+			format = GL_RGBA;
+		}
+		else if (nrComponents == 1) {
+			format = GL_RED;
+		}
+
+		// 3. LA LÍNEA MÁGICA: Le dice a OpenGL que lea píxel por píxel sin importar si el ancho es múltiplo de 4 (Evita el Infracción de acceso)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "CUIDADO: No se pudo cargar la textura: " << filename << std::endl;
+	}
 
 	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -235,3 +255,43 @@ GLint TextureFromFile(const char *path, string directory)
 
 	return textureID;
 }
+//GLint TextureFromFile(const char *path, string directory)
+//{
+//	//Generate texture ID and load texture data
+//	string filename = string(path);
+//	filename = directory + '/' + filename;
+//	GLuint textureID;
+//	glGenTextures(1, &textureID);
+//
+//	int width, height;
+//
+//	unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+//
+//			//// Assign texture to ID
+//			//glBindTexture(GL_TEXTURE_2D, textureID);
+//			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+//			//glGenerateMipmap(GL_TEXTURE_2D);
+//		// Assign texture to ID
+//		if (image)
+//		{
+//			glBindTexture(GL_TEXTURE_2D, textureID);
+//			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+//			glGenerateMipmap(GL_TEXTURE_2D);
+//		}
+//		else
+//		{
+//			std::cout << "CUIDADO: No se pudo cargar la textura: " << filename << std::endl;
+//		}
+//
+//
+//
+//	// Parameters
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	glBindTexture(GL_TEXTURE_2D, 0);
+//	SOIL_free_image_data(image);
+//
+//	return textureID;
+//}
