@@ -277,7 +277,8 @@ int main()
     Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
     //Model pueblo4((char*)"Models/ZonaE/camino.obj");
 
-
+    // Ofrenda de la Zona C
+    Model OfrendaZonaC((char*)"Models/ZonaC/ofrendaFinalZonaC.obj");
 
 
     ////- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -480,6 +481,12 @@ int main()
         pueblo4.Draw(lightingShader);
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
+        // Ofrenda de la Zona C
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        OfrendaZonaC.Draw(lightingShader);
 
         /*model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
