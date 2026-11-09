@@ -252,16 +252,22 @@ int main()
     // =========================================================================
     Model ChinampaA((char*)"Models/ZonaA/ChinampaA.obj");
         Model caminoA((char*)"Models/ZonaA/caminoA.obj");
+        Model arbolA((char*)"Models/ZonaA/vegetacion/arbolesA.obj");
 
     Model ChinampaB((char*)"Models/ZonaB/ChinampaB.obj");
         Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
         Model caminoB((char*)"Models/ZonaB/caminoB.obj");
         Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
+        Model arbolB((char*)"Models/ZonaB/vegetacion/arboles.obj");
 
     Model ChinampaC((char*)"Models/ZonaC/ChinampaC.obj");
+        Model caminoC((char*)"Models/ZonaC/caminoC.obj");
         Model ofrenda((char*)"Models/ZonaC/ofrenda.obj");
+        Model arbolC((char*)"Models/ZonaC/vegetacion/arbolesC.obj");
 
     Model ChinampaD((char*)"Models/ZonaD/ChinampaD.obj");
+        Model caminoD((char*)"Models/ZonaD/caminoD.obj");
+        Model arbolD((char*)"Models/ZonaD/vegetacion/arbolesC.obj");
 
     Model ChinampaE((char*)"Models/ZonaE/ChinampaE.obj");
         Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
@@ -273,6 +279,7 @@ int main()
 
     Model Chinampas((char*)"Models/Extras-Relleno/Chinampas.obj");
         Model hierbas((char*)"Models/Extras-Relleno/hierbas.obj");
+        Model arbolesExtra((char*)"Models/Extras-Relleno/arboles.obj");
 
     
     Model agua((char*)"Models/Rio-Canales/awa.obj");
@@ -440,6 +447,13 @@ int main()
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
                 caminoA.Draw(lightingShader);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolA.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -462,8 +476,15 @@ int main()
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
                 glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
                 cosasB.Draw(lightingShader);
+                //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolB.Draw(lightingShader);
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
@@ -471,6 +492,12 @@ int main()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaC.Draw(lightingShader);
+                
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoC.Draw(lightingShader);
 
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -478,11 +505,31 @@ int main()
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
                 ofrenda.Draw(lightingShader);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolC.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaD.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoD.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolD.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -536,6 +583,13 @@ int main()
                 glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
                 hierbas.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolesExtra.Draw(lightingShader);
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 

@@ -1,0 +1,12 @@
+# Blender 5.2.0 LTS MTL File: 'Chinampas.blend'
+# www.blender.org
+
+newmtl Material.028
+Ns 42.961975
+Ka 0.327273 0.327273 0.327273
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+illum 3
+map_Kd primera_arbol-removebg-preview.png
+map_d primera_arbol-removebg-preview.png
