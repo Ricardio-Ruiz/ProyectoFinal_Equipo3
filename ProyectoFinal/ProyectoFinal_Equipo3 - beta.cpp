@@ -118,8 +118,8 @@ bool activarLinterna = true;
 int i_max_steps = 90;
 int i_curr_steps = 0;
 
-//float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
-float objPosX = 81.0f, objPosY = 0.0f, objPosZ = -39.0f;                                       //SPAWN B
+float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
+//float objPosX = 81.0f, objPosY = 0.0f, objPosZ = -39.0f;                                       //SPAWN B
 //float objPosX = 280.0f, objPosY = 0.0f, objPosZ = -94.0f;                                       //SPAWN C
 //float objPosX = 191.0f, objPosY = 0.0f, objPosZ = 75.0f;                                       //SPAWN D
 //float objPosX = 294.0f, objPosY = 0.0f, objPosZ = -226.0f;                                       //SPAWN E
@@ -258,6 +258,8 @@ int main()
     Model ChinampaA((char*)"Models/ZonaA/ChinampaA.obj");
         Model caminoA((char*)"Models/ZonaA/caminoA.obj");
         Model arbolA((char*)"Models/ZonaA/vegetacion/arbolesA.obj");
+        Model decoA((char*)"Models/ZonaA/deco.obj");
+        Model cartel((char*)"Models/ZonaA/cartel.obj");
 
     Model ChinampaB((char*)"Models/ZonaB/ChinampaB.obj");
         Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
@@ -273,12 +275,14 @@ int main()
     Model ChinampaD((char*)"Models/ZonaD/ChinampaD.obj");
         Model caminoD((char*)"Models/ZonaD/caminoD.obj");
         Model arbolD((char*)"Models/ZonaD/vegetacion/arbolesC.obj");
+        Model deco((char*)"Models/ZonaD/deco.obj");
 
     Model ChinampaE((char*)"Models/ZonaE/ChinampaE.obj");
         Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
         Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
         Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
         Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
+        Model cement((char*)"Models/ZonaE/Panteon/panteonE.obj");
         //Model pueblo4((char*)"Models/ZonaE/camino.obj");
 
 
@@ -347,7 +351,11 @@ int main()
 
     //Musica
     PlaySoundA("La llorona - Homenaje a Antonio Bribiesca.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-
+    // Abrir el archivo de pasos y asignarle un alias
+    mciSendStringA("open \"Footsteps-Grass-Sound-Effect-_HD_.wav\" type waveaudio alias sonidoPasos", NULL, 0, NULL);
+    // Calentamiento: reproducir y pausar de inmediato en segundo plano
+    mciSendStringA("play sonidoPasos", NULL, 0, NULL);
+    mciSendStringA("pause sonidoPasos", NULL, 0, NULL);
     
     // Inicializar Keyframes
     resetElements();
@@ -462,6 +470,19 @@ int main()
                 arbolA.Draw(lightingShader);
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                decoA.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                cartel.Draw(lightingShader);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -539,6 +560,13 @@ int main()
                 arbolD.Draw(lightingShader);
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                deco.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -571,6 +599,13 @@ int main()
                 glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
                 pueblo4.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                cement.Draw(lightingShader);
                 glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         //// Ofrenda de la Zona C
@@ -701,13 +736,13 @@ int main()
             glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
             PiernaD.Draw(lightingShader);
 
-            //personaje prueba
-            model = glm::mat4(1.0f);
-            //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-            //model = glm::scale(model, glm::vec3(3.0f, 2.0f, 2.5f));
-            //model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            zinnia.Draw(lightingShader);
+                    ////personaje prueba
+                    //model = glm::mat4(1.0f);
+                    ////model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                    ////model = glm::scale(model, glm::vec3(3.0f, 2.0f, 2.5f));
+                    ////model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                    //glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+                    //zinnia.Draw(lightingShader);
         }
 
 
@@ -876,11 +911,36 @@ void DoMovement() {                                                         //Ca
     if (keys[GLFW_KEY_D]) { objPosX += rightDir.x * velocidad; objPosZ += rightDir.z * velocidad; dirMovimiento += rightDir; moviendo = true; }
     
 
-    // Hacer que el monito gire hacia la dirección en la que se está moviendo
+    // Hacer que el monito gire hacia la direccion en la que se esta moviendo jajaja
+    static int contadorPasos = 0; // Declarar el contador de sonido
+    int umbralPasos = 40;
+    static bool estabaMoviendose = false; // Variable para detectar el cambio
     if (moviendo) {
         dirMovimiento = glm::normalize(dirMovimiento);
         objRotY = glm::degrees(atan2(dirMovimiento.x, dirMovimiento.z));
+
+
+        // Reproducir sonido de pasos a un ritmo controlado
+        contadorPasos++;
+        if (contadorPasos >= umbralPasos) {
+            // Reproducir usando el alias registrado
+            // Cerramos cualquier instancia previa antes de reproducir para evitar solapamientos o atascos
+            mciSendStringA("play sonidoPasos from 0", NULL, 0, NULL);
+            contadorPasos = 0;
+        }
+        estabaMoviendose = true; // Marcamos que estamos en movimiento
     }
+    else {
+        // Reiniciar el contador de inmediato al detenerse
+        // En cuanto te detienes: reiniciamos el contador y mandamos la orden de PARAR el audio inmediatamente
+        contadorPasos = 0;
+        // ¡LA CLAVE!: Solo mandamos la orden de STOP una sola vez justo cuando el usuario se detiene
+        if (estabaMoviendose) {
+            mciSendStringA("stop sonidoPasos", NULL, 0, NULL);
+            estabaMoviendose = false; // Reseteamos el estado
+        }
+    }
+
 
     // 2. Revisar a dónde intentó moverse el personaje
     float fX = objPosX;
@@ -1049,11 +1109,15 @@ void DoMovement() {                                                         //Ca
     }
     else if (fX >= -30.0f && fX <= 86.0f && fZ >= -406.0f && fZ <= -370.0f) {
         zonaValida = true;
-        alturaSuelo = 20.0f;
+        alturaSuelo = 21.2f;
     }
     else if (fX >= -155.0f && fX <= -30.0f && fZ >= -460.0f && fZ <= -370.0f) {
         zonaValida = true;
-        alturaSuelo = 20.0f;
+        alturaSuelo = 21.2f;
+        }
+    else if (fX >= -312.0f && fX <= -155.0f && fZ >= -460.0f && fZ <= -350.0f) {
+        zonaValida = true;
+        alturaSuelo = 21.2f;
         }
     // ==================================================================================
 

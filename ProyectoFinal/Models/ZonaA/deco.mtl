@@ -1,0 +1,406 @@
+# Blender 5.2.0 LTS MTL File: 'Chinampas.blend'
+# www.blender.org
+
+newmtl Material.003
+Ns 0.000000
+Ka 0.578182 0.578182 0.578182
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd naranja.png
+
+newmtl Material.031
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd grass.jpg
+
+newmtl Material.032
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Image_0.jpg
+
+newmtl papel_base_azul_01.002
+Ns 159.999985
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Image_8.png
+
+newmtl papel_base_naranja_01.002
+Ns 159.999985
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Image_6.png
+
+newmtl papel_base_rosa1.002
+Ns 159.999985
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Image_9.png
+
+newmtl papel_calavera_naranja_01.002
+Ns 159.999985
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Image_11.png
+
+newmtl root.0
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.996078 0.454902 0.203922
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.010
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2 
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.011
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.012
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.013
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.014
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.015
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.016
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.017
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.018
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.019
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd texture_diffuse_00.png
+map_Ns texture_roughness.png
+map_refl texture_metallic.png
+map_Bump -bm 1.000000 texture_normal.png
+
+newmtl root.020
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.021
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.022
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.023
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.024
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.025
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.026
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.027
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.028
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.029
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ke shaded_00.png
+
+newmtl root.1
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.435294 0.694118 0.627451
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.2
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.705882 0.254902 0.556863
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.3
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.015686 0.313726 0.705882
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.4
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.917647 0.317647 0.372549
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.5
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.996078 0.658824 0.007843
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.6
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.015686 0.427451 0.784314
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.7
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.850980 0.290196 0.549020
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.8
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.066667 0.517647 0.654902
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
+
+newmtl root.9
+Ns 360.000000
+Ka 0.050000 0.050000 0.050000
+Kd 0.082353 0.635294 0.635294
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd shaded_00.png
