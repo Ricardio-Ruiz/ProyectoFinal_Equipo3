@@ -42,6 +42,11 @@
 
 #include "Texture.h"      //skybox
 
+//PAra la musica            Probar, si no funciona, eliminar las 3:
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+
 
 // Prototipos
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -339,6 +344,9 @@ int main()
     //}
     ////- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
+    //Musica
+    PlaySoundA("La llorona - Homenaje a Antonio Bribiesca.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 
     
     // Inicializar Keyframes
