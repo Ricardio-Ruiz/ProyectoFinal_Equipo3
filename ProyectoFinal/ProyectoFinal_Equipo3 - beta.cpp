@@ -114,8 +114,8 @@ int i_max_steps = 90;
 int i_curr_steps = 0;
 
 //float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
-//float objPosX = 81.0f, objPosY = 0.0f, objPosZ = -39.0f;                                       //SPAWN B
-float objPosX = 280.0f, objPosY = 0.0f, objPosZ = -94.0f;                                       //SPAWN C
+float objPosX = 81.0f, objPosY = 0.0f, objPosZ = -39.0f;                                       //SPAWN B
+//float objPosX = 280.0f, objPosY = 0.0f, objPosZ = -94.0f;                                       //SPAWN C
 //float objPosX = 191.0f, objPosY = 0.0f, objPosZ = 75.0f;                                       //SPAWN D
 //float objPosX = 294.0f, objPosY = 0.0f, objPosZ = -226.0f;                                       //SPAWN E
 
@@ -232,11 +232,11 @@ int main()
     // Carga de las 6 texturas del cubo
     vector<const GLchar*> faces;
     faces.push_back("SkyBox/frente3.png");      // 1. Derecha (+X)
-    faces.push_back("SkyBox/atras3.png");    // 2. Izquierda (-X)
-    faces.push_back("SkyBox/arriba.png");       // 3. Arriba (+Y)
+    faces.push_back("SkyBox/atras5.png");    // 2. Izquierda (-X)
+    faces.push_back("SkyBox/arriba5.png");       // 3. Arriba (+Y)
     faces.push_back("SkyBox/abajo.png");        // 4. Abajo (-Y)
-    faces.push_back("SkyBox/izquierda3.png");        // 5. Atrás (+Z)
-    faces.push_back("SkyBox/derecha3.png");       // 6. Frente (-Z)
+    faces.push_back("SkyBox/izquierda5.png");        // 5. Atrás (+Z)
+    faces.push_back("SkyBox/derecha5.png");       // 6. Frente (-Z)
 
     // NOTA: Asegúrate de que la clase en tu archivo "Texture.h" se llame exactamente así.
     GLuint cubemapTexture = TextureLoading::LoadCubemap(faces);
@@ -248,17 +248,35 @@ int main()
 
 
     // =========================================================================
-    // 3. CARGA DE MODELOS (Espacio para assets del proyecto)
+    // CARGA DE MODELOS (Espacio para assets del proyecto)
     // =========================================================================
     Model ChinampaA((char*)"Models/ZonaA/ChinampaA.obj");
+        Model caminoA((char*)"Models/ZonaA/caminoA.obj");
+
     Model ChinampaB((char*)"Models/ZonaB/ChinampaB.obj");
+        Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
+        Model caminoB((char*)"Models/ZonaB/caminoB.obj");
+        Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
+
     Model ChinampaC((char*)"Models/ZonaC/ChinampaC.obj");
+        Model ofrenda((char*)"Models/ZonaC/ofrenda.obj");
+
     Model ChinampaD((char*)"Models/ZonaD/ChinampaD.obj");
+
     Model ChinampaE((char*)"Models/ZonaE/ChinampaE.obj");
+        Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
+        Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
+        Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
+        Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
+        //Model pueblo4((char*)"Models/ZonaE/camino.obj");
+
+
     Model Chinampas((char*)"Models/Extras-Relleno/Chinampas.obj");
-    
+        Model hierbas((char*)"Models/Extras-Relleno/hierbas.obj");
+
     
     Model agua((char*)"Models/Rio-Canales/awa.obj");
+        Model plantasawa((char*)"Models/Rio-Canales/plantas.obj");
     //Model Trajinera((char*)"Models/Proyecto/Trajinera.obj");
 
     //Model Personaje((char*)"Models/Proyecto/Personaje.");
@@ -271,14 +289,8 @@ int main()
     Model zinnia((char*)"Models/Personaje/prueba.obj");
 
 
-    Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
-    Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
-    Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
-    Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
-    //Model pueblo4((char*)"Models/ZonaE/camino.obj");
 
-    // Ofrenda de la Zona C
-    Model OfrendaZonaC((char*)"Models/ZonaC/ofrendaFinalZonaC.obj");
+
 
 
     ////- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -415,11 +427,6 @@ int main()
         glm::mat4 modelTemp(1.0f);
         
         // 1. Entorno Estático (Chinampas)
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        Chinampas.Draw(lightingShader);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -427,17 +434,49 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaA.Draw(lightingShader);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoA.Draw(lightingShader);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaB.Draw(lightingShader);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoB.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                plantasB.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                cosasB.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaC.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                ofrenda.Draw(lightingShader);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -451,42 +490,54 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaE.Draw(lightingShader);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo1.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo2.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo3.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo4.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+        //// Ofrenda de la Zona C
+        //model = glm::mat4(1.0f);
+        //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        //OfrendaZonaC.Draw(lightingShader);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo1.Draw(lightingShader);
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        Chinampas.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo2.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                hierbas.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo3.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo4.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-
-        // Ofrenda de la Zona C
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        OfrendaZonaC.Draw(lightingShader);
 
         /*model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -507,6 +558,13 @@ int main()
         agua.Draw(lightingShader);
         // Reseteamos el uvOffset a 0.0f para que no afecte a las chinampas ni al mariachi
         glUniform1f(glGetUniformLocation(lightingShader.Program, "uvOffset"), 0.0f);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                plantasawa.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         //// 3. Animación Procedimental (Trajinera flotando)
         //model = glm::mat4(1.0f);

@@ -1,0 +1,54 @@
+# Blender 5.2.0 LTS MTL File: 'Chinampas.blend'
+# www.blender.org
+
+newmtl Bark
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Bark_LQ.png
+
+newmtl Ground_Textured
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd cultivo.jpg
+map_Bump -bm 1.300000 GardenBedHP_Normal.DefaultMaterial.png
+
+newmtl Leaf
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd Bush.png
+map_d Bush.png
+
+newmtl Material.003
+Ns 0.000000
+Ka 0.578182 0.578182 0.578182
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd naranja.png
+
+newmtl Wet
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd cultivo.jpg
+map_Bump -bm 1.300000 GardenBedHP_Normal.DefaultMaterial.png
