@@ -118,22 +118,23 @@ bool activarLinterna = true;
 int i_max_steps = 90;
 int i_curr_steps = 0;
 
-// ANIMACIÓN AUTOMÁTICA DEL XOLOITZCUINTLE
-float xoloX = 250.0f;
-float xoloY = 12.5f;
-float xoloZ = -50.0f;
+// ANIMACIÓN JERÁRQUICA DEL XOLO
+float xoloFase = 0.0f;
 
-float xoloRotY = 0.0f;
-float xoloTiempo = 0.0f;
-float xoloPaso = 0.0f;
-
-float xoloPataDelIzq = 0.0f;
 float xoloPataDelDer = 0.0f;
-float xoloPataTrasIzq = 0.0f;
+float xoloPataDelIzq = 0.0f;
 float xoloPataTrasDer = 0.0f;
+float xoloPataTrasIzq = 0.0f;
 
-int xoloEstado = 0;
-float xoloTiempoEstado = 0.0f; 
+float xoloCabezaAng = 0.0f;
+float xoloColaAng = 0.0f;
+float xoloBalanceo = 0.0f;
+
+// Pivotes aproximados en coordenadas locales
+glm::vec3 pivoteDelDer(-0.14f, -0.52f, 0.74f);
+glm::vec3 pivoteDelIzq(0.14f, -0.52f, 0.74f);
+glm::vec3 pivoteTrasDer(-0.14f, 0.48f, 0.74f);
+glm::vec3 pivoteTrasIzq(0.14f, 0.48f, 0.74f);
 
 
 float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
@@ -771,48 +772,134 @@ int main()
         // =========================================================================
         
        
-        // =====================================================
-        // DIBUJADO DEL XOLOITZCUINTLE
-        // =====================================================
+       // =====================================================
+// DIBUJADO JERÁRQUICO DEL XOLOITZCUINTLE
+// =====================================================
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(xoloX, xoloY, xoloZ));
-        model = glm::rotate(model, glm::radians(xoloRotY),
-            glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(5.0f));
+// MATRIZ PADRE: TRONCO
+        modelTemp = glm::mat4(1.0f);
 
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        modelTemp = glm::translate(
+            modelTemp,
+            glm::vec3(250.0f, 12.5f + xoloBalanceo, -50.0f)
+        );
 
-        // Tronco
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        modelTemp = glm::rotate(
+            modelTemp,
+            glm::radians(0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+
+        modelTemp = glm::scale(modelTemp, glm::vec3(5.0f));
+
+        glUniform1i(
+            glGetUniformLocation(lightingShader.Program, "transparency"), 0
+        );
+
+        // TRONCO: PADRE
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTemp));
         XoloTronco.Draw(lightingShader);
 
-        // Cuello
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        // CUELLO: HIJO DEL TRONCO
+        glm::mat4 modelCuello = modelTemp;
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCuello));
         XoloCuello.Draw(lightingShader);
 
-        // Cabeza
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        // CABEZA: HIJA DEL CUELLO
+        glm::mat4 modelCabeza = modelCuello;
+
+        glm::vec3 pivoteCabeza(0.0f, -0.75f, 0.80f);
+
+        modelCabeza = glm::translate(modelCabeza, pivoteCabeza);
+        modelCabeza = glm::rotate(
+            modelCabeza,
+            glm::radians(xoloCabezaAng),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+        modelCabeza = glm::translate(modelCabeza, -pivoteCabeza);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCabeza));
         XoloCabeza.Draw(lightingShader);
 
-        // Cola
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        // COLA: HIJA DEL TRONCO
+        glm::mat4 modelCola = modelTemp;
+
+        glm::vec3 pivoteCola(0.0f, 0.90f, 0.75f);
+
+        modelCola = glm::translate(modelCola, pivoteCola);
+        modelCola = glm::rotate(
+            modelCola,
+            glm::radians(xoloColaAng),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+        modelCola = glm::translate(modelCola, -pivoteCola);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCola));
         XoloCola.Draw(lightingShader);
 
-        // Patas
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        XoloPataDelIzq.Draw(lightingShader);
 
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        // PATA DELANTERA DERECHA
+        glm::mat4 modelPataDelDer = modelTemp;
+
+        modelPataDelDer = glm::translate(modelPataDelDer, pivoteDelDer);
+        modelPataDelDer = glm::rotate(
+            modelPataDelDer,
+            glm::radians(xoloPataDelDer),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+        modelPataDelDer = glm::translate(modelPataDelDer, -pivoteDelDer);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataDelDer));
         XoloPataDelDer.Draw(lightingShader);
 
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        XoloPataTrasIzq.Draw(lightingShader);
 
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        // PATA DELANTERA IZQUIERDA
+        glm::mat4 modelPataDelIzq = modelTemp;
+
+        modelPataDelIzq = glm::translate(modelPataDelIzq, pivoteDelIzq);
+        modelPataDelIzq = glm::rotate(
+            modelPataDelIzq,
+            glm::radians(xoloPataDelIzq),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+        modelPataDelIzq = glm::translate(modelPataDelIzq, -pivoteDelIzq);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataDelIzq));
+        XoloPataDelIzq.Draw(lightingShader);
+
+
+        // PATA TRASERA DERECHA
+        glm::mat4 modelPataTrasDer = modelTemp;
+
+        modelPataTrasDer = glm::translate(modelPataTrasDer, pivoteTrasDer);
+        modelPataTrasDer = glm::rotate(
+            modelPataTrasDer,
+            glm::radians(xoloPataTrasDer),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+        modelPataTrasDer = glm::translate(modelPataTrasDer, -pivoteTrasDer);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataTrasDer));
         XoloPataTrasDer.Draw(lightingShader);
 
 
+        // PATA TRASERA IZQUIERDA
+        glm::mat4 modelPataTrasIzq = modelTemp;
+
+        modelPataTrasIzq = glm::translate(modelPataTrasIzq, pivoteTrasIzq);
+        modelPataTrasIzq = glm::rotate(
+            modelPataTrasIzq,
+            glm::radians(xoloPataTrasIzq),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+        modelPataTrasIzq = glm::translate(modelPataTrasIzq, -pivoteTrasIzq);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataTrasIzq));
+        XoloPataTrasIzq.Draw(lightingShader);
 
 
 
@@ -900,123 +987,25 @@ void Animation() {
         }
     }
     // =====================================================
-// ANIMACIÓN AUTOMÁTICA DEL XOLOITZCUINTLE
-// =====================================================
+   // CAMINATA DEL XOLO EN SU SITIO
+   // Basada en la caminata de la Practica 11
+   // =====================================================
 
-    xoloTiempoEstado += deltaTime;
+    xoloFase += deltaTime * 8.0f;
 
-    // ESTADO 0: Caminar desde Zona C hacia el puente
-    if (xoloEstado == 0) {
-        float velocidadXolo = 8.0f;
+    // Movimiento alternado de las patas
+    xoloPataDelDer = sin(xoloFase) * 18.0f;
+    xoloPataTrasIzq = sin(xoloFase) * 18.0f;
 
-        xoloX += 3.8f * deltaTime;
-        xoloZ -= velocidadXolo * deltaTime;
+    xoloPataDelIzq = sin(xoloFase + glm::pi<float>()) * 18.0f;
+    xoloPataTrasDer = sin(xoloFase + glm::pi<float>()) * 18.0f;
 
-        xoloRotY = 20.0f;
+    // Movimiento secundario de cabeza y cola
+    xoloCabezaAng = sin(xoloFase * 0.5f) * 3.0f;
+    xoloColaAng = sin(xoloFase * 1.5f) * 8.0f;
 
-        xoloPaso += deltaTime * 9.0f;
-
-        xoloPataDelIzq = sin(xoloPaso) * 25.0f;
-        xoloPataDelDer = -xoloPataDelIzq;
-        xoloPataTrasIzq = -xoloPataDelIzq;
-        xoloPataTrasDer = xoloPataDelIzq;
-
-        if (xoloZ <= -145.0f) {
-            xoloEstado = 1;
-            xoloTiempoEstado = 0.0f;
-        }
-    }
-
-    // ESTADO 1: Girar para continuar por el puente
-    else if (xoloEstado == 1) {
-        xoloRotY = 0.0f;
-
-        xoloPataDelIzq = 0.0f;
-        xoloPataDelDer = 0.0f;
-        xoloPataTrasIzq = 0.0f;
-        xoloPataTrasDer = 0.0f;
-
-        if (xoloTiempoEstado >= 1.5f) {
-            xoloEstado = 2;
-            xoloTiempoEstado = 0.0f;
-        }
-    }
-
-    // ESTADO 2: Caminar por el puente hacia Tierra E
-    else if (xoloEstado == 2) {
-        xoloZ -= 8.0f * deltaTime;
-
-        xoloPaso += deltaTime * 9.0f;
-
-        xoloPataDelIzq = sin(xoloPaso) * 25.0f;
-        xoloPataDelDer = -xoloPataDelIzq;
-        xoloPataTrasIzq = -xoloPataDelIzq;
-        xoloPataTrasDer = xoloPataDelIzq;
-
-        if (xoloZ <= -220.0f) {
-            xoloEstado = 3;
-            xoloTiempoEstado = 0.0f;
-        }
-    }
-
-    // ESTADO 3: Avanzar por el camino de Tierra E
-    else if (xoloEstado == 3) {
-        xoloZ -= 8.0f * deltaTime;
-
-        xoloPaso += deltaTime * 9.0f;
-
-        xoloPataDelIzq = sin(xoloPaso) * 25.0f;
-        xoloPataDelDer = -xoloPataDelIzq;
-        xoloPataTrasIzq = -xoloPataDelIzq;
-        xoloPataTrasDer = xoloPataDelIzq;
-
-        if (xoloZ <= -270.0f) {
-            xoloEstado = 4;
-            xoloTiempoEstado = 0.0f;
-        }
-    }
-
-    // ESTADO 4: Detenerse a descansar
-    else if (xoloEstado == 4) {
-        xoloPataDelIzq = 0.0f;
-        xoloPataDelDer = 0.0f;
-        xoloPataTrasIzq = 0.0f;
-        xoloPataTrasDer = 0.0f;
-
-        if (xoloTiempoEstado >= 5.0f) {
-            xoloEstado = 5;
-            xoloTiempoEstado = 0.0f;
-        }
-    }
-
-    // ESTADO 5: Permanecer descansando
-    else if (xoloEstado == 5) {
-        if (xoloTiempoEstado >= 8.0f) {
-            xoloEstado = 0;
-            xoloTiempoEstado = 0.0f;
-
-            // Reiniciar el recorrido
-            xoloX = 250.0f;
-            xoloZ = -50.0f;
-        }
-    }
-
-    // Ajustar la altura según el terreno
-    if (xoloZ >= -118.0f) {
-        xoloY = 12.5f;
-    }
-    else if (xoloZ >= -150.0f) {
-        xoloY = 14.3f;
-    }
-    else if (xoloZ >= -180.0f) {
-        xoloY = 13.4f;
-    }
-    else if (xoloZ >= -222.0f) {
-        xoloY = 12.7f;
-    }
-    else {
-        xoloY = 12.5f;
-    }
+    // Pequeño balanceo del tronco
+    xoloBalanceo = fabs(sin(xoloFase * 2.0f)) * 0.025f;
 }
 
 
