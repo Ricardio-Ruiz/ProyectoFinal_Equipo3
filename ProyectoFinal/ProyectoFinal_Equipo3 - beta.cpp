@@ -118,6 +118,24 @@ bool activarLinterna = true;
 int i_max_steps = 90;
 int i_curr_steps = 0;
 
+// ANIMACIÓN AUTOMÁTICA DEL XOLOITZCUINTLE
+float xoloX = 250.0f;
+float xoloY = 12.5f;
+float xoloZ = -50.0f;
+
+float xoloRotY = 0.0f;
+float xoloTiempo = 0.0f;
+float xoloPaso = 0.0f;
+
+float xoloPataDelIzq = 0.0f;
+float xoloPataDelDer = 0.0f;
+float xoloPataTrasIzq = 0.0f;
+float xoloPataTrasDer = 0.0f;
+
+int xoloEstado = 0;
+float xoloTiempoEstado = 0.0f; 
+
+
 float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
 //float objPosX = 81.0f, objPosY = 0.0f, objPosZ = -39.0f;                                       //SPAWN B
 //float objPosX = 280.0f, objPosY = 0.0f, objPosZ = -94.0f;                                       //SPAWN C
@@ -188,6 +206,7 @@ GLfloat skyboxVertices[] = {
 };
 
 
+
 // =========================================================================
 // MAIN
 // =========================================================================
@@ -217,9 +236,6 @@ int main()
     Shader lightingShader("Shader/lighting.vs", "Shader/lighting.frag");
     //Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
     Shader skyboxShader("Shader/SkyBox.vs", "Shader/SkyBox.frag");
-
-
-
 
 
 
@@ -304,8 +320,16 @@ int main()
     Model PiernaD((char*)"Models/Personaje/pierna-de.obj");
     Model zinnia((char*)"Models/Personaje/prueba.obj");
 
+    // Carga de piezas del Xoloitzcuintle
+    Model XoloTronco((char*)"Models/Xolo/xoloTronco.obj");
+    Model XoloCuello((char*)"Models/Xolo/xoloCuello.obj");
+    Model XoloCabeza((char*)"Models/Xolo/xoloCabeza.obj");
+    Model XoloCola((char*)"Models/Xolo/xoloCola.obj");
 
-
+    Model XoloPataDelIzq((char*)"Models/Xolo/xoloPata_Del_Izq.obj");
+    Model XoloPataDelDer((char*)"Models/Xolo/xoloPata_Del_Der.obj");
+    Model XoloPataTrasIzq((char*)"Models/Xolo/xoloPata_Tras_Izq.obj");
+    Model XoloPataTrasDer((char*)"Models/Xolo/xoloPata_Tras_Der.obj");
 
 
 
@@ -744,9 +768,49 @@ int main()
                     //glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
                     //zinnia.Draw(lightingShader);
         }
+        // =========================================================================
+        
+       
+        // =====================================================
+        // DIBUJADO DEL XOLOITZCUINTLE
+        // =====================================================
 
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(xoloX, xoloY, xoloZ));
+        model = glm::rotate(model, glm::radians(xoloRotY),
+            glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(5.0f));
 
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
+        // Tronco
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloTronco.Draw(lightingShader);
+
+        // Cuello
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloCuello.Draw(lightingShader);
+
+        // Cabeza
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloCabeza.Draw(lightingShader);
+
+        // Cola
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloCola.Draw(lightingShader);
+
+        // Patas
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloPataDelIzq.Draw(lightingShader);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloPataDelDer.Draw(lightingShader);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloPataTrasIzq.Draw(lightingShader);
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        XoloPataTrasDer.Draw(lightingShader);
 
 
 
@@ -834,6 +898,124 @@ void Animation() {
             art2 += KeyFrame[playIndex].incArt2;
             i_curr_steps++;
         }
+    }
+    // =====================================================
+// ANIMACIÓN AUTOMÁTICA DEL XOLOITZCUINTLE
+// =====================================================
+
+    xoloTiempoEstado += deltaTime;
+
+    // ESTADO 0: Caminar desde Zona C hacia el puente
+    if (xoloEstado == 0) {
+        float velocidadXolo = 8.0f;
+
+        xoloX += 3.8f * deltaTime;
+        xoloZ -= velocidadXolo * deltaTime;
+
+        xoloRotY = 20.0f;
+
+        xoloPaso += deltaTime * 9.0f;
+
+        xoloPataDelIzq = sin(xoloPaso) * 25.0f;
+        xoloPataDelDer = -xoloPataDelIzq;
+        xoloPataTrasIzq = -xoloPataDelIzq;
+        xoloPataTrasDer = xoloPataDelIzq;
+
+        if (xoloZ <= -145.0f) {
+            xoloEstado = 1;
+            xoloTiempoEstado = 0.0f;
+        }
+    }
+
+    // ESTADO 1: Girar para continuar por el puente
+    else if (xoloEstado == 1) {
+        xoloRotY = 0.0f;
+
+        xoloPataDelIzq = 0.0f;
+        xoloPataDelDer = 0.0f;
+        xoloPataTrasIzq = 0.0f;
+        xoloPataTrasDer = 0.0f;
+
+        if (xoloTiempoEstado >= 1.5f) {
+            xoloEstado = 2;
+            xoloTiempoEstado = 0.0f;
+        }
+    }
+
+    // ESTADO 2: Caminar por el puente hacia Tierra E
+    else if (xoloEstado == 2) {
+        xoloZ -= 8.0f * deltaTime;
+
+        xoloPaso += deltaTime * 9.0f;
+
+        xoloPataDelIzq = sin(xoloPaso) * 25.0f;
+        xoloPataDelDer = -xoloPataDelIzq;
+        xoloPataTrasIzq = -xoloPataDelIzq;
+        xoloPataTrasDer = xoloPataDelIzq;
+
+        if (xoloZ <= -220.0f) {
+            xoloEstado = 3;
+            xoloTiempoEstado = 0.0f;
+        }
+    }
+
+    // ESTADO 3: Avanzar por el camino de Tierra E
+    else if (xoloEstado == 3) {
+        xoloZ -= 8.0f * deltaTime;
+
+        xoloPaso += deltaTime * 9.0f;
+
+        xoloPataDelIzq = sin(xoloPaso) * 25.0f;
+        xoloPataDelDer = -xoloPataDelIzq;
+        xoloPataTrasIzq = -xoloPataDelIzq;
+        xoloPataTrasDer = xoloPataDelIzq;
+
+        if (xoloZ <= -270.0f) {
+            xoloEstado = 4;
+            xoloTiempoEstado = 0.0f;
+        }
+    }
+
+    // ESTADO 4: Detenerse a descansar
+    else if (xoloEstado == 4) {
+        xoloPataDelIzq = 0.0f;
+        xoloPataDelDer = 0.0f;
+        xoloPataTrasIzq = 0.0f;
+        xoloPataTrasDer = 0.0f;
+
+        if (xoloTiempoEstado >= 5.0f) {
+            xoloEstado = 5;
+            xoloTiempoEstado = 0.0f;
+        }
+    }
+
+    // ESTADO 5: Permanecer descansando
+    else if (xoloEstado == 5) {
+        if (xoloTiempoEstado >= 8.0f) {
+            xoloEstado = 0;
+            xoloTiempoEstado = 0.0f;
+
+            // Reiniciar el recorrido
+            xoloX = 250.0f;
+            xoloZ = -50.0f;
+        }
+    }
+
+    // Ajustar la altura según el terreno
+    if (xoloZ >= -118.0f) {
+        xoloY = 12.5f;
+    }
+    else if (xoloZ >= -150.0f) {
+        xoloY = 14.3f;
+    }
+    else if (xoloZ >= -180.0f) {
+        xoloY = 13.4f;
+    }
+    else if (xoloZ >= -222.0f) {
+        xoloY = 12.7f;
+    }
+    else {
+        xoloY = 12.5f;
     }
 }
 
