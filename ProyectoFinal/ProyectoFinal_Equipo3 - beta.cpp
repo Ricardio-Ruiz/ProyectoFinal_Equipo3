@@ -354,6 +354,12 @@ int main()
     Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
     Model caminoB((char*)"Models/ZonaB/caminoB.obj");
     Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
+
+    // Artesano de papel picado - piezas independientes para modelado jerarquico
+    Model mesaArtesano((char*)"Models/Artesano/mesaArtesano.obj");
+    Model cuerpoArtesano((char*)"Models/Artesano/cuerpoArtesano.obj");
+    Model brazoCincelArtesano((char*)"Models/Artesano/brazoCincelArtesano.obj");
+    Model brazoMartilloArtesano((char*)"Models/Artesano/brazoMartilloArtesano.obj");
     Model arbolB((char*)"Models/ZonaB/vegetacion/arboles.obj");
 
     Model ChinampaC((char*)"Models/ZonaC/ChinampaC.obj");
@@ -454,6 +460,21 @@ int main()
     // Calentamiento: reproducir y pausar de inmediato en segundo plano
     mciSendStringA("play sonidoPasos", NULL, 0, NULL);
     mciSendStringA("pause sonidoPasos", NULL, 0, NULL);
+    // Abrir el sonido del Xolo
+    mciSendStringA(
+        "open \"sonidoPerro.mp3\" type mpegvideo alias sonidoPerro",
+        NULL, 0, NULL
+    );
+    // Abrir el sonido del artesano
+    mciSendStringA(
+        "open \"sonidoArtesano.mp3\" type mpegvideo alias sonidoArtesano",
+        NULL, 0, NULL
+    );
+    // Subir el volumen del sonido del artesano
+    mciSendStringA(
+        "setaudio sonidoArtesano volume to 500",
+        NULL, 0, NULL
+    );
 
     // Inicializar Keyframes
     resetElements();
@@ -608,7 +629,109 @@ int main()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         cosasB.Draw(lightingShader);
+
+        // =============================================================
+        // ARTESANO cINCELANDO PAPEL PICADO EN ZONA B
+        // Modelado jerarquico: mesa y torso como base; brazos como hijos
+        // =============================================================
+        glm::mat4 modeloArtesano = glm::mat4(1.0f);
+        modeloArtesano = glm::translate(modeloArtesano, glm::vec3(140.0f, 12.5f, -80.0f));
+        modeloArtesano = glm::rotate(modeloArtesano, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        modeloArtesano = glm::scale(modeloArtesano, glm::vec3(5.0f));
+
+        // Mesa fija: elemento base del puesto de trabajo.
+        model = modeloArtesano;
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        mesaArtesano.Draw(lightingShader);
+
+        // Torso fijo: padre de los dos brazos.
+        model = modeloArtesano;
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        cuerpoArtesano.Draw(lightingShader);
+
+        // Ciclo repetitivo de trabajo. Solo controla las articulaciones del artesano.
+        float tiempoTrabajoArtesano = (float)glfwGetTime();
+        float golpeMartillo = sinf(tiempoTrabajoArtesano * 10.0f);
+        float ajusteCincel = sinf(tiempoTrabajoArtesano * 6.0f + 0.45f);
+
+        // Brazo del cincel: movimiento corto para mantener el cincel sobre el papel.
+        // El pivote se expresa en las coordenadas locales originales del OBJ.
+        glm::vec3 pivoteCincel(0.02f, 1.35f, -0.20f);
+        glm::mat4 modeloBrazoCincel = modeloArtesano;
+        modeloBrazoCincel = glm::translate(modeloBrazoCincel, pivoteCincel);
+        modeloBrazoCincel = glm::rotate(modeloBrazoCincel, glm::radians(4.0f * ajusteCincel), glm::vec3(0.0f, 0.0f, 1.0f));
+        modeloBrazoCincel = glm::translate(modeloBrazoCincel, -pivoteCincel);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modeloBrazoCincel));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        brazoCincelArtesano.Draw(lightingShader);
+
+        // Brazo del martillo: recorrido mayor para simular el golpe.
+        glm::vec3 pivoteMartillo(-0.30f, 1.38f, -0.24f);
+        glm::mat4 modeloBrazoMartillo = modeloArtesano;
+        modeloBrazoMartillo = glm::translate(modeloBrazoMartillo, pivoteMartillo);
+        modeloBrazoMartillo = glm::rotate(modeloBrazoMartillo, glm::radians(17.0f * golpeMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
+        modeloBrazoMartillo = glm::translate(modeloBrazoMartillo, -pivoteMartillo);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modeloBrazoMartillo));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        brazoMartilloArtesano.Draw(lightingShader);
+
+        // Restaurar la matriz base y el estado de transparencia para los modelos siguientes.
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
         //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        
+        
+        // =============================================================
+        // SONIDO AMBIENTAL DEL ARTESANO SEGUN LA DISTANCIA
+        // =============================================================
+
+        static bool sonidoArtesanoActivo = false;
+
+        // Posición del artesano
+        glm::vec3 posicionArtesano(140.0f, 12.5f, -80.0f);
+
+        // Posición actual del jugador
+        glm::vec3 posicionJugador = camera.GetPosition();
+
+        // Calcular distancia entre el jugador y el artesano
+        float distanciaArtesano = glm::distance(
+            posicionJugador,
+            posicionArtesano
+        );
+
+        // Distancia máxima para escuchar el sonido
+        float distanciaMaximaArtesano = 60.0f;
+
+        // Si el jugador se acerca, iniciar el sonido
+        if (distanciaArtesano <= distanciaMaximaArtesano &&
+            !sonidoArtesanoActivo)
+        {
+            mciSendStringA(
+                "seek sonidoArtesano to start",
+                NULL, 0, NULL
+            );
+
+            mciSendStringA(
+                "play sonidoArtesano repeat",
+                NULL, 0, NULL
+            );
+
+            sonidoArtesanoActivo = true;
+        }
+
+        // Si el jugador se aleja, detener el sonido
+        else if (distanciaArtesano > distanciaMaximaArtesano &&
+            sonidoArtesanoActivo)
+        {
+            mciSendStringA(
+                "stop sonidoArtesano",
+                NULL, 0, NULL
+            );
+
+            sonidoArtesanoActivo = false;
+        }
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -887,8 +1010,10 @@ int main()
 
         glfwSwapBuffers(window);
     }
+    mciSendStringA("close sonidoPerro", NULL, 0, NULL);
+    mciSendStringA("close sonidoArtesano", NULL, 0, NULL);
     glfwTerminate();
-    return 0;
+    return 0;;
 }
 
 // =========================================================================
@@ -1625,6 +1750,16 @@ void animarXolo()
     // Si el jugador cambia a cámara libre, el Xolo deja de seguirlo.
     // No se sienta: simplemente termina el paso y se queda quieto.
     bool caminando = modoSeguir && (jugadorCaminando || xoloAvanzando);
+
+    // Reproducir el sonido una sola vez cuando el Xolo comienza a caminar
+    static bool perroEstabaCaminando = false;
+
+    if (caminando && !perroEstabaCaminando) {
+        mciSendStringA("seek sonidoPerro to start", NULL, 0, NULL);
+        mciSendStringA("play sonidoPerro", NULL, 0, NULL);
+    }
+
+    perroEstabaCaminando = caminando;
 
     // Cada fila representa una pose completa del Xolo.
     // Orden: patas delantera izq./der., trasera izq./der., cabeza,
