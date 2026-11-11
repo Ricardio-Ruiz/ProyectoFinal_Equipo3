@@ -49,14 +49,30 @@
 
 
 // Prototipos
-void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
-void MouseCallback(GLFWwindow *window, double xPos, double yPos);
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void MouseCallback(GLFWwindow* window, double xPos, double yPos);
 void DoMovement();
 void Animation();
 void saveFramesToFile();
 void loadFramesFromFile();
 void resetElements();
 void interpolation();
+// Funciones de animacion del Xolo
+void agregarFrameXolo(
+    float x, float y, float z,
+    float rot,
+    float delIzq, float delDer,
+    float trasIzq, float trasDer,
+    float cabeza, float cuello, float cola,
+    float cuerpoY, float cuerpoRot
+);
+
+void inicializarXolo();
+void interpolarXolo();
+void animarXolo();
+void dibujarXolo(Shader& shader, GLint modelLoc,
+    Model& tronco, Model& cuello, Model& cabeza, Model& cola,
+    Model& pataDelIzq, Model& pataDelDer, Model& pataTrasIzq, Model& pataTrasDer);
 
 // Dimensiones y Cámara
 const GLuint WIDTH = 1280, HEIGHT = 720;
@@ -82,23 +98,23 @@ GLfloat lastFrame = 0.0f;
 // 1. ILUMINACIÓN (1 Direccional, 7 Puntuales, 2 Spotlights)
 // =========================================================================
 glm::vec3 pointLightPositions[7] = {
-    glm::vec3( 2.0f,  2.0f,  2.0f),
+    glm::vec3(2.0f,  2.0f,  2.0f),
     glm::vec3(-2.0f,  2.0f, -2.0f),
-    glm::vec3( 4.0f,  1.5f,  0.0f),
+    glm::vec3(4.0f,  1.5f,  0.0f),
     glm::vec3(-4.0f,  1.5f,  0.0f),
-    glm::vec3( 0.0f,  3.0f,  4.0f),
-    glm::vec3( 0.0f,  3.0f, -4.0f),
-    glm::vec3( 5.0f,  2.0f,  5.0f)
+    glm::vec3(0.0f,  3.0f,  4.0f),
+    glm::vec3(0.0f,  3.0f, -4.0f),
+    glm::vec3(5.0f,  2.0f,  5.0f)
 };
 
 glm::vec3 spotLightPositions[2] = {
-    glm::vec3( 0.0f, 5.0f, 0.0f),  // Ej. Reflector 1 fijo
-    glm::vec3( 0.0f, 0.0f, 0.0f)   // Ej. Linterna del jugador (se actualiza en el loop)
+    glm::vec3(0.0f, 5.0f, 0.0f),  // Ej. Reflector 1 fijo
+    glm::vec3(0.0f, 0.0f, 0.0f)   // Ej. Linterna del jugador (se actualiza en el loop)
 };
 
 glm::vec3 spotLightDirections[2] = {
-    glm::vec3( 0.0f, -1.0f, 0.0f), // Apuntando hacia abajo
-    glm::vec3( 0.0f,  0.0f, -1.0f) // Apuntando hacia donde mira la cámara
+    glm::vec3(0.0f, -1.0f, 0.0f), // Apuntando hacia abajo
+    glm::vec3(0.0f,  0.0f, -1.0f) // Apuntando hacia donde mira la cámara
 };
 
 // =========================================================================
@@ -117,24 +133,6 @@ bool activarLinterna = true;
 #define MAX_FRAMES 200
 int i_max_steps = 90;
 int i_curr_steps = 0;
-
-// ANIMACIÓN JERÁRQUICA DEL XOLO
-float xoloFase = 0.0f;
-
-float xoloPataDelDer = 0.0f;
-float xoloPataDelIzq = 0.0f;
-float xoloPataTrasDer = 0.0f;
-float xoloPataTrasIzq = 0.0f;
-
-float xoloCabezaAng = 0.0f;
-float xoloColaAng = 0.0f;
-float xoloBalanceo = 0.0f;
-
-// Pivotes aproximados en coordenadas locales
-glm::vec3 pivoteDelDer(-0.14f, -0.52f, 0.74f);
-glm::vec3 pivoteDelIzq(0.14f, -0.52f, 0.74f);
-glm::vec3 pivoteTrasDer(-0.14f, 0.48f, 0.74f);
-glm::vec3 pivoteTrasIzq(0.14f, 0.48f, 0.74f);
 
 
 float objPosX = -151.0f, objPosY = 0.0f, objPosZ = 8.0f;                                        //SPAWN A inicio
@@ -158,8 +156,82 @@ FRAME KeyFrame[MAX_FRAMES];
 int FrameIndex = 0;
 bool playAnim = false;
 int playIndex = 0;
+// =====================================================
+// VARIABLES PARA LA ANIMACION DEL XOLO
+// =====================================================
 
+#define XOLO_MAX_FRAMES 80
 
+struct XOLO_FRAME {
+    float x, y, z;
+    float rotY;
+
+    float pataDelIzq;
+    float pataDelDer;
+    float pataTrasIzq;
+    float pataTrasDer;
+
+    float cabeza;
+    float cuello;
+    float cola;
+
+    float cuerpoY;
+    float cuerpoRot;
+
+    float incX, incY, incZ, incRotY;
+
+    float incPataDelIzq, incPataDelDer;
+    float incPataTrasIzq, incPataTrasDer;
+
+    float incCabeza, incCuello, incCola;
+    float incCuerpoY, incCuerpoRot;
+};
+
+XOLO_FRAME XoloFrames[XOLO_MAX_FRAMES];
+
+int XoloFrameIndex = 0;
+int XoloPlayIndex = 0;
+int XoloSteps = 0;
+int XoloMaxSteps = 240;
+int XoloGaitSteps = 0;
+
+bool XoloPlay = false;
+
+// Posicion y articulaciones
+float xoloX = 225.0f;
+float xoloY = 18.0f;
+float xoloZ = 15.0f;
+
+float xoloRotY = 0.0f;
+
+float xoloPataDelIzq = 0.0f;
+float xoloPataDelDer = 0.0f;
+float xoloPataTrasIzq = 0.0f;
+float xoloPataTrasDer = 0.0f;
+
+float xoloCabeza = 0.0f;
+float xoloCuello = 0.0f;
+float xoloCola = 0.0f;
+
+float xoloCuerpoY = 0.0f;
+float xoloCuerpoRot = 0.0f;
+
+// Seguimiento del mariachi: guardamos su trayectoria DESPUES de aplicar
+// las colisiones del mapa. El Xolo sigue esa misma trayectoria con retraso.
+struct XOLO_TRAIL_POINT {
+    glm::vec3 posicion;
+};
+
+#define XOLO_MAX_TRAIL 4096
+XOLO_TRAIL_POINT XoloTrail[XOLO_MAX_TRAIL];
+int XoloTrailCount = 0;
+float XoloDistanciaSeguimiento = 7.0f;
+float XoloGaitTime = 0.0f;
+float XoloSitBlend = 1.0f;
+bool XoloTrailReady = false;
+glm::vec3 XoloUltimaPosJugador(0.0f);
+bool XoloHayPosJugadorAnterior = false;
+// =====================================================
 
 GLfloat skyboxVertices[] = {
     // Positions
@@ -273,43 +345,43 @@ int main()
     // CARGA DE MODELOS (Espacio para assets del proyecto)
     // =========================================================================
     Model ChinampaA((char*)"Models/ZonaA/ChinampaA.obj");
-        Model caminoA((char*)"Models/ZonaA/caminoA.obj");
-        Model arbolA((char*)"Models/ZonaA/vegetacion/arbolesA.obj");
-        Model decoA((char*)"Models/ZonaA/deco.obj");
-        Model cartel((char*)"Models/ZonaA/cartel.obj");
+    Model caminoA((char*)"Models/ZonaA/caminoA.obj");
+    Model arbolA((char*)"Models/ZonaA/vegetacion/arbolesA.obj");
+    Model decoA((char*)"Models/ZonaA/deco.obj");
+    Model cartel((char*)"Models/ZonaA/cartel.obj");
 
     Model ChinampaB((char*)"Models/ZonaB/ChinampaB.obj");
-        Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
-        Model caminoB((char*)"Models/ZonaB/caminoB.obj");
-        Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
-        Model arbolB((char*)"Models/ZonaB/vegetacion/arboles.obj");
+    Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
+    Model caminoB((char*)"Models/ZonaB/caminoB.obj");
+    Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
+    Model arbolB((char*)"Models/ZonaB/vegetacion/arboles.obj");
 
     Model ChinampaC((char*)"Models/ZonaC/ChinampaC.obj");
-        Model caminoC((char*)"Models/ZonaC/caminoC.obj");
-        Model ofrenda((char*)"Models/ZonaC/ofrenda.obj");
-        Model arbolC((char*)"Models/ZonaC/vegetacion/arbolesC.obj");
+    Model caminoC((char*)"Models/ZonaC/caminoC.obj");
+    Model ofrenda((char*)"Models/ZonaC/ofrenda.obj");
+    Model arbolC((char*)"Models/ZonaC/vegetacion/arbolesC.obj");
 
     Model ChinampaD((char*)"Models/ZonaD/ChinampaD.obj");
-        Model caminoD((char*)"Models/ZonaD/caminoD.obj");
-        Model arbolD((char*)"Models/ZonaD/vegetacion/arbolesC.obj");
-        Model deco((char*)"Models/ZonaD/deco.obj");
+    Model caminoD((char*)"Models/ZonaD/caminoD.obj");
+    Model arbolD((char*)"Models/ZonaD/vegetacion/arbolesC.obj");
+    Model deco((char*)"Models/ZonaD/deco.obj");
 
     Model ChinampaE((char*)"Models/ZonaE/ChinampaE.obj");
-        Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
-        Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
-        Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
-        Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
-        Model cement((char*)"Models/ZonaE/Panteon/panteonE.obj");
-        //Model pueblo4((char*)"Models/ZonaE/camino.obj");
+    Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
+    Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
+    Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
+    Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
+    Model cement((char*)"Models/ZonaE/Panteon/panteonE.obj");
+    //Model pueblo4((char*)"Models/ZonaE/camino.obj");
 
 
     Model Chinampas((char*)"Models/Extras-Relleno/Chinampas.obj");
-        Model hierbas((char*)"Models/Extras-Relleno/hierbas.obj");
-        Model arbolesExtra((char*)"Models/Extras-Relleno/arboles.obj");
+    Model hierbas((char*)"Models/Extras-Relleno/hierbas.obj");
+    Model arbolesExtra((char*)"Models/Extras-Relleno/arboles.obj");
 
-    
+
     Model agua((char*)"Models/Rio-Canales/awa.obj");
-        Model plantasawa((char*)"Models/Rio-Canales/plantas.obj");
+    Model plantasawa((char*)"Models/Rio-Canales/plantas.obj");
     //Model Trajinera((char*)"Models/Proyecto/Trajinera.obj");
 
     //Model Personaje((char*)"Models/Proyecto/Personaje.");
@@ -321,16 +393,17 @@ int main()
     Model PiernaD((char*)"Models/Personaje/pierna-de.obj");
     Model zinnia((char*)"Models/Personaje/prueba.obj");
 
-    // Carga de piezas del Xoloitzcuintle
-    Model XoloTronco((char*)"Models/Xolo/xoloTronco.obj");
+    // =====================================================
+    // MODELOS DEL XOLO
+    // =====================================================
+    Model XoloTronco((char*)"Models/Xolo/XoloTronco.obj");
     Model XoloCuello((char*)"Models/Xolo/xoloCuello.obj");
     Model XoloCabeza((char*)"Models/Xolo/xoloCabeza.obj");
     Model XoloCola((char*)"Models/Xolo/xoloCola.obj");
-
-    Model XoloPataDelIzq((char*)"Models/Xolo/xoloPata_Del_Izq.obj");
-    Model XoloPataDelDer((char*)"Models/Xolo/xoloPata_Del_Der.obj");
-    Model XoloPataTrasIzq((char*)"Models/Xolo/xoloPata_Tras_Izq.obj");
-    Model XoloPataTrasDer((char*)"Models/Xolo/xoloPata_Tras_Der.obj");
+    Model XoloPataDelIzq((char*)"Models/Xolo/XoloPata_Del_Izq.obj");
+    Model XoloPataDelDer((char*)"Models/Xolo/XoloPata_Del_Der.obj");
+    Model XoloPataTrasIzq((char*)"Models/Xolo/XoloPata_Tras_Izq.obj");
+    Model XoloPataTrasDer((char*)"Models/Xolo/XoloPata_Tras_Der.obj");
 
 
 
@@ -381,9 +454,11 @@ int main()
     // Calentamiento: reproducir y pausar de inmediato en segundo plano
     mciSendStringA("play sonidoPasos", NULL, 0, NULL);
     mciSendStringA("pause sonidoPasos", NULL, 0, NULL);
-    
+
     // Inicializar Keyframes
     resetElements();
+    // Inicializar keyframes del Xolo
+    inicializarXolo();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -394,13 +469,14 @@ int main()
         glfwPollEvents();
         DoMovement();
         Animation();
+        animarXolo();
 
         // Color de fondo (Cambia según estadoDiaNoche)
         //if(estadoDiaNoche == 0) glClearColor(0.5f, 0.8f, 0.9f, 1.0f);      // Día
         //else if(estadoDiaNoche == 1) glClearColor(0.8f, 0.4f, 0.2f, 1.0f); // Tarde
         //else glClearColor(0.05f, 0.05f, 0.1f, 1.0f);                       // Noche
         glClearColor(0.6588f, 0.4431f, 0.0392f, 1.0f);
-        
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShader.Use();
@@ -417,20 +493,20 @@ int main()
         glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.5f, 0.5f, 0.5f);
 
         // 7 Luces Puntuales (Antorchas, faroles en trajineras, etc.)
-        for(int i = 0; i < 7; i++) {
+        for (int i = 0; i < 7; i++) {
             std::string number = std::to_string(i);
             glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].position").c_str()), pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z);
-            
+
             glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].ambient").c_str()), 0.2f, 0.1f, 0.05f);
-            
+
             glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].diffuse").c_str()), 0.8f, 0.4f, 0.1f);
-            
+
             glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].specular").c_str()), 1.0f, 0.5f, 0.2f);
-            
+
             glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].constant").c_str()), 1.0f);
-            
+
             glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].linear").c_str()), 0.09f);
-            
+
             glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].quadratic").c_str()), 0.032f);
         }
 
@@ -473,7 +549,7 @@ int main()
         // =========================================================================
         glm::mat4 model(1.0f);
         glm::mat4 modelTemp(1.0f);
-        
+
         // 1. Entorno Estático (Chinampas)
 
         model = glm::mat4(1.0f);
@@ -482,31 +558,31 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaA.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                caminoA.Draw(lightingShader);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        caminoA.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                arbolA.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        arbolA.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                decoA.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        decoA.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                cartel.Draw(lightingShader);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        cartel.Draw(lightingShader);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -514,57 +590,57 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaB.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                caminoB.Draw(lightingShader);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        caminoB.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                plantasB.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        plantasB.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                cosasB.Draw(lightingShader);
-                //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        cosasB.Draw(lightingShader);
+        //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                arbolB.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        arbolB.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaC.Draw(lightingShader);
-                
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                caminoC.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                ofrenda.Draw(lightingShader);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        caminoC.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                arbolC.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        ofrenda.Draw(lightingShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        arbolC.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -572,25 +648,25 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaD.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-                caminoD.Draw(lightingShader);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        caminoD.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                arbolD.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        arbolD.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                deco.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        deco.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -598,40 +674,40 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaE.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                pueblo1.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo1.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                pueblo2.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo2.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                pueblo3.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo3.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                pueblo4.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        pueblo4.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                cement.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        cement.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         //// Ofrenda de la Zona C
         //model = glm::mat4(1.0f);
@@ -646,19 +722,19 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         Chinampas.Draw(lightingShader);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                hierbas.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        hierbas.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                arbolesExtra.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        arbolesExtra.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 
         /*model = glm::mat4(1.0f);
@@ -681,12 +757,12 @@ int main()
         // Reseteamos el uvOffset a 0.0f para que no afecte a las chinampas ni al mariachi
         glUniform1f(glGetUniformLocation(lightingShader.Program, "uvOffset"), 0.0f);
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-                plantasawa.Draw(lightingShader);
-                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+        plantasawa.Draw(lightingShader);
+        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         //// 3. Animación Procedimental (Trajinera flotando)
         //model = glm::mat4(1.0f);
@@ -712,7 +788,7 @@ int main()
 
         // =========================================================================
         // DIBUJADO DEL PERSONAJE JERÁRQUICO
-       
+
         // Condición: Si es 1ra persona (1) Y la cámara mira un poco hacia arriba (> 0.05f)
         bool ocultarPorSombrero = (tipoCamara == 1 && camera.GetFront().y > 0.05f || tipoCamara == 1 && keys[GLFW_KEY_S] && camera.GetFront().y < 0.05f);
 
@@ -761,148 +837,27 @@ int main()
             glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
             PiernaD.Draw(lightingShader);
 
-                    ////personaje prueba
-                    //model = glm::mat4(1.0f);
-                    ////model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-                    ////model = glm::scale(model, glm::vec3(3.0f, 2.0f, 2.5f));
-                    ////model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                    //glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-                    //zinnia.Draw(lightingShader);
+            ////personaje prueba
+            //model = glm::mat4(1.0f);
+            ////model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            ////model = glm::scale(model, glm::vec3(3.0f, 2.0f, 2.5f));
+            ////model = glm::rotate(model, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            //glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            //zinnia.Draw(lightingShader);
         }
         // =========================================================================
-        
-       
-       // =====================================================
-// DIBUJADO JERÁRQUICO DEL XOLOITZCUINTLE
-// =====================================================
-
-// MATRIZ PADRE: TRONCO
-        modelTemp = glm::mat4(1.0f);
-
-        modelTemp = glm::translate(
-            modelTemp,
-            glm::vec3(250.0f, 12.5f + xoloBalanceo, -50.0f)
-        );
-
-        modelTemp = glm::rotate(
-            modelTemp,
-            glm::radians(0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-
-        modelTemp = glm::scale(modelTemp, glm::vec3(5.0f));
-
-        glUniform1i(
-            glGetUniformLocation(lightingShader.Program, "transparency"), 0
-        );
-
-        // TRONCO: PADRE
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTemp));
-        XoloTronco.Draw(lightingShader);
-
-
-        // CUELLO: HIJO DEL TRONCO
-        glm::mat4 modelCuello = modelTemp;
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCuello));
-        XoloCuello.Draw(lightingShader);
-
-
-        // CABEZA: HIJA DEL CUELLO
-        glm::mat4 modelCabeza = modelCuello;
-
-        glm::vec3 pivoteCabeza(0.0f, -0.75f, 0.80f);
-
-        modelCabeza = glm::translate(modelCabeza, pivoteCabeza);
-        modelCabeza = glm::rotate(
-            modelCabeza,
-            glm::radians(xoloCabezaAng),
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
-        modelCabeza = glm::translate(modelCabeza, -pivoteCabeza);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCabeza));
-        XoloCabeza.Draw(lightingShader);
-
-
-        // COLA: HIJA DEL TRONCO
-        glm::mat4 modelCola = modelTemp;
-
-        glm::vec3 pivoteCola(0.0f, 0.90f, 0.75f);
-
-        modelCola = glm::translate(modelCola, pivoteCola);
-        modelCola = glm::rotate(
-            modelCola,
-            glm::radians(xoloColaAng),
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
-        modelCola = glm::translate(modelCola, -pivoteCola);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCola));
-        XoloCola.Draw(lightingShader);
-
-
-        // PATA DELANTERA DERECHA
-        glm::mat4 modelPataDelDer = modelTemp;
-
-        modelPataDelDer = glm::translate(modelPataDelDer, pivoteDelDer);
-        modelPataDelDer = glm::rotate(
-            modelPataDelDer,
-            glm::radians(xoloPataDelDer),
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
-        modelPataDelDer = glm::translate(modelPataDelDer, -pivoteDelDer);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataDelDer));
-        XoloPataDelDer.Draw(lightingShader);
-
-
-        // PATA DELANTERA IZQUIERDA
-        glm::mat4 modelPataDelIzq = modelTemp;
-
-        modelPataDelIzq = glm::translate(modelPataDelIzq, pivoteDelIzq);
-        modelPataDelIzq = glm::rotate(
-            modelPataDelIzq,
-            glm::radians(xoloPataDelIzq),
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
-        modelPataDelIzq = glm::translate(modelPataDelIzq, -pivoteDelIzq);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataDelIzq));
-        XoloPataDelIzq.Draw(lightingShader);
-
-
-        // PATA TRASERA DERECHA
-        glm::mat4 modelPataTrasDer = modelTemp;
-
-        modelPataTrasDer = glm::translate(modelPataTrasDer, pivoteTrasDer);
-        modelPataTrasDer = glm::rotate(
-            modelPataTrasDer,
-            glm::radians(xoloPataTrasDer),
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
-        modelPataTrasDer = glm::translate(modelPataTrasDer, -pivoteTrasDer);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataTrasDer));
-        XoloPataTrasDer.Draw(lightingShader);
-
-
-        // PATA TRASERA IZQUIERDA
-        glm::mat4 modelPataTrasIzq = modelTemp;
-
-        modelPataTrasIzq = glm::translate(modelPataTrasIzq, pivoteTrasIzq);
-        modelPataTrasIzq = glm::rotate(
-            modelPataTrasIzq,
-            glm::radians(xoloPataTrasIzq),
-            glm::vec3(1.0f, 0.0f, 0.0f)
-        );
-        modelPataTrasIzq = glm::translate(modelPataTrasIzq, -pivoteTrasIzq);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPataTrasIzq));
-        XoloPataTrasIzq.Draw(lightingShader);
 
 
 
+
+
+        // =========================================================================
+        // DIBUJADO DEL XOLO (animacion independiente por keyframes)
+        // =========================================================================
+        dibujarXolo(lightingShader, modelLoc,
+            XoloTronco, XoloCuello, XoloCabeza, XoloCola,
+            XoloPataDelIzq, XoloPataDelDer,
+            XoloPataTrasIzq, XoloPataTrasDer);
 
         // =========================================================================
         // DIBUJADO DEL SKYBOX 
@@ -914,16 +869,16 @@ int main()
         view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
         glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-        
+
         // --- EL PARCHE DEFINITIVO: EVITAR EL CHOQUE DE TEXTURAS ---
-        glActiveTexture(GL_TEXTURE0); 
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0); // 1. Desenchufamos cualquier textura 2D basura que hayan dejado los modelos
 
         glActiveTexture(GL_TEXTURE15); // 2. Nos mudamos a un canal completamente libre (el 15)
         glUniform1i(glGetUniformLocation(skyboxShader.Program, "skybox"), 15); // Le avisamos al shader que lea el canal 15
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture); // 3. Enlazamos el cubo limpio
         // ----------------------------------------------------------
-        
+
         glBindVertexArray(skyboxVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
@@ -954,12 +909,12 @@ void Animation() {
     }
 
 
-    
+
     // 1. Animaciones Procedimentales
             //
     //waterOffset = sin(glfwGetTime() * 0.5f) * 0.2f;
     waterOffset = glfwGetTime() * -0.03f;
-            //velocidad sube/baja  |/     |/  altura
+    //velocidad sube/baja  |/     |/  altura
     flotaY = sin(glfwGetTime() * 3.0f) * 0.3f;
     //flotaY = sin(glfwGetTime() * 1.2f) * 0.05f;
 
@@ -972,11 +927,13 @@ void Animation() {
             if (playIndex > FrameIndex - 2) {
                 playIndex = 0;
                 playAnim = false;
-            } else {
+            }
+            else {
                 i_curr_steps = 0;
                 interpolation();
             }
-        } else {
+        }
+        else {
             objPosX += KeyFrame[playIndex].incX;
             objPosY += KeyFrame[playIndex].incY;
             objPosZ += KeyFrame[playIndex].incZ;
@@ -986,26 +943,7 @@ void Animation() {
             i_curr_steps++;
         }
     }
-    // =====================================================
-   // CAMINATA DEL XOLO EN SU SITIO
-   // Basada en la caminata de la Practica 11
-   // =====================================================
 
-    xoloFase += deltaTime * 8.0f;
-
-    // Movimiento alternado de las patas
-    xoloPataDelDer = sin(xoloFase) * 18.0f;
-    xoloPataTrasIzq = sin(xoloFase) * 18.0f;
-
-    xoloPataDelIzq = sin(xoloFase + glm::pi<float>()) * 18.0f;
-    xoloPataTrasDer = sin(xoloFase + glm::pi<float>()) * 18.0f;
-
-    // Movimiento secundario de cabeza y cola
-    xoloCabezaAng = sin(xoloFase * 0.5f) * 3.0f;
-    xoloColaAng = sin(xoloFase * 1.5f) * 8.0f;
-
-    // Pequeño balanceo del tronco
-    xoloBalanceo = fabs(sin(xoloFase * 2.0f)) * 0.025f;
 }
 
 
@@ -1060,19 +998,19 @@ void DoMovement() {                                                         //Ca
     /*    glm::vec3 rightDir = camera.GetRight();
         rightDir.y = 0.0f;
         rightDir = glm::normalize(rightDir);*/
-    
-    // Calcula el vector derecho perpendicular en el plano horizontal
+
+        // Calcula el vector derecho perpendicular en el plano horizontal
     glm::vec3 rightDir = glm::cross(frontDir, glm::vec3(0.0f, 1.0f, 0.0f));
     rightDir = glm::normalize(rightDir);
 
-        //Guarda la posicion ANTES de movernos (para poder revertirla si chocamos)
-        //glm::vec3 oldPos = camera.GetPosition();
-    //Movimiento WASD
-    /*        if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
-            if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
-            if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
-            if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);*/
-            // Movimiento WASD aplicado al PERSONAJE (objPosX y objPosZ)
+    //Guarda la posicion ANTES de movernos (para poder revertirla si chocamos)
+    //glm::vec3 oldPos = camera.GetPosition();
+//Movimiento WASD
+/*        if (keys[GLFW_KEY_W]) camera.ProcessKeyboard(FORWARD, deltaTime);
+        if (keys[GLFW_KEY_S]) camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (keys[GLFW_KEY_A]) camera.ProcessKeyboard(LEFT, deltaTime);
+        if (keys[GLFW_KEY_D]) camera.ProcessKeyboard(RIGHT, deltaTime);*/
+        // Movimiento WASD aplicado al PERSONAJE (objPosX y objPosZ)
     bool moviendo = false;
     glm::vec3 dirMovimiento(0.0f);
 
@@ -1080,7 +1018,7 @@ void DoMovement() {                                                         //Ca
     if (keys[GLFW_KEY_S]) { objPosX -= frontDir.x * velocidad; objPosZ -= frontDir.z * velocidad; dirMovimiento -= frontDir; moviendo = true; }
     if (keys[GLFW_KEY_A]) { objPosX -= rightDir.x * velocidad; objPosZ -= rightDir.z * velocidad; dirMovimiento -= rightDir; moviendo = true; }
     if (keys[GLFW_KEY_D]) { objPosX += rightDir.x * velocidad; objPosZ += rightDir.z * velocidad; dirMovimiento += rightDir; moviendo = true; }
-    
+
 
     // Hacer que el monito gire hacia la direccion en la que se esta moviendo jajaja
     static int contadorPasos = 0; // Declarar el contador de sonido
@@ -1174,7 +1112,7 @@ void DoMovement() {                                                         //Ca
     //Muelle parte 1 (Blanco en la primera imagen) - - - - - 
     else if (fX >= 5.5f && fX <= 11.5f && fZ >= 30.0f && fZ <= 69.7f) {
         zonaValida = true;
-        alturaSuelo = 10.8f; 
+        alturaSuelo = 10.8f;
     }
     //Muelle parte 4 (Azul en la segunda imagen)
     else if (fX >= 11.0f && fX <= 30.5f && fZ >= 31.0f && fZ <= 40.5f) {
@@ -1206,7 +1144,7 @@ void DoMovement() {                                                         //Ca
     // Puente norte (Conecta Chinampa C con Tierra E)
     else if (fX >= 288.0f && fX <= 299.0f && fZ >= -150.0f && fZ <= -118.0f) {
         zonaValida = true;
-        alturaSuelo = 21.8f; 
+        alturaSuelo = 21.8f;
     }
     else if (fX >= 288.0f && fX <= 299.0f && fZ >= -180.0f && fZ <= -150.0f) {
         zonaValida = true;
@@ -1285,11 +1223,11 @@ void DoMovement() {                                                         //Ca
     else if (fX >= -155.0f && fX <= -30.0f && fZ >= -460.0f && fZ <= -370.0f) {
         zonaValida = true;
         alturaSuelo = 21.2f;
-        }
+    }
     else if (fX >= -312.0f && fX <= -155.0f && fZ >= -460.0f && fZ <= -350.0f) {
         zonaValida = true;
         alturaSuelo = 21.2f;
-        }
+    }
     // ==================================================================================
 
     // 3. Aplicar colisiones al personaje
@@ -1310,7 +1248,7 @@ void DoMovement() {                                                         //Ca
             //camera.position = glm::vec3(objPosX + 0.8, (camera.GetFront().y * + 0.6f), objPosZ);
         //camera.position = glm::vec3(objPosX + 0.8, objPosY + 0.6f + (camera.GetFront().y * 0.5f), objPosZ);
         //camera.position = glm::vec3(objPosX, objPosY + 0.6f + (camera.GetFront().y * 0.5f), objPosZ);
-        
+
         // 1. Distancia desde el origen (0,0,0) del torso hasta la cara del mariachi
         float offsetCaraX = 0.8f; // El valor que te funcionaba antes
         float offsetCaraY = 0.6f; // La altura que te funcionaba antes
@@ -1350,14 +1288,14 @@ void DoMovement() {                                                         //Ca
     //    camera.position = oldPos;
     //}
 
-    
+
 
 }
 
 
 
 
-void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode) {
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
@@ -1373,7 +1311,8 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
             playAnim = true;
             playIndex = 0;
             i_curr_steps = 0;
-        } else {
+        }
+        else {
             playAnim = false;
         }
     }
@@ -1390,6 +1329,8 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
             std::cout << "Frame guardado: " << FrameIndex << std::endl;
         }
     }
+
+    // El Xolo sigue automaticamente al mariachi en primera/tercera persona.
 
     // Máquina de estados: Linterna
     if (key == GLFW_KEY_F && action == GLFW_PRESS) {
@@ -1417,14 +1358,14 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 
 }
 
-void MouseCallback(GLFWwindow *window, double xPos, double yPos) {
+void MouseCallback(GLFWwindow* window, double xPos, double yPos) {
     if (firstMouse) {
         lastX = xPos;
         lastY = yPos;
         firstMouse = false;
     }
     GLfloat xOffset = xPos - lastX;
-    GLfloat yOffset = lastY - yPos; 
+    GLfloat yOffset = lastY - yPos;
     lastX = xPos;
     lastY = yPos;
     camera.ProcessMouseMovement(xOffset, yOffset);
@@ -1443,7 +1384,7 @@ void interpolation() {
 }
 
 void resetElements() {
-    if(FrameIndex > 0) {
+    if (FrameIndex > 0) {
         objPosX = KeyFrame[0].objPosX;
         objPosY = KeyFrame[0].objPosY;
         objPosZ = KeyFrame[0].objPosZ;
@@ -1459,7 +1400,7 @@ void saveFramesToFile() {
         file << FrameIndex << "\n";
         for (int i = 0; i < FrameIndex; i++) {
             file << KeyFrame[i].objPosX << " " << KeyFrame[i].objPosY << " " << KeyFrame[i].objPosZ << " "
-                 << KeyFrame[i].objRotY << " " << KeyFrame[i].art1 << " " << KeyFrame[i].art2 << "\n";
+                << KeyFrame[i].objRotY << " " << KeyFrame[i].art1 << " " << KeyFrame[i].art2 << "\n";
         }
         file.close();
         std::cout << "Animacion guardada." << std::endl;
@@ -1472,10 +1413,342 @@ void loadFramesFromFile() {
         file >> FrameIndex;
         for (int i = 0; i < FrameIndex; i++) {
             file >> KeyFrame[i].objPosX >> KeyFrame[i].objPosY >> KeyFrame[i].objPosZ
-                 >> KeyFrame[i].objRotY >> KeyFrame[i].art1 >> KeyFrame[i].art2;
+                >> KeyFrame[i].objRotY >> KeyFrame[i].art1 >> KeyFrame[i].art2;
         }
         file.close();
         resetElements();
         std::cout << "Animacion cargada." << std::endl;
     }
+}
+
+// =========================================================================
+// ANIMACION DEL XOLO POR KEYFRAMES
+// =========================================================================
+
+void agregarFrameXolo(
+    float x, float y, float z, float rot,
+    float delIzq, float delDer, float trasIzq, float trasDer,
+    float cabeza, float cuello, float cola, float cuerpoY, float cuerpoRot)
+{
+    if (XoloFrameIndex >= XOLO_MAX_FRAMES) return;
+
+    XOLO_FRAME& f = XoloFrames[XoloFrameIndex++];
+    f.x = x; f.y = y; f.z = z; f.rotY = rot;
+    f.pataDelIzq = delIzq; f.pataDelDer = delDer;
+    f.pataTrasIzq = trasIzq; f.pataTrasDer = trasDer;
+    f.cabeza = cabeza; f.cuello = cuello; f.cola = cola;
+    f.cuerpoY = cuerpoY; f.cuerpoRot = cuerpoRot;
+}
+
+void interpolarXolo()
+{
+    if (XoloFrameIndex < 2) {
+        XoloPlay = false;
+        return;
+    }
+
+    int siguiente = (XoloPlayIndex + 1) % XoloFrameIndex;
+    const XOLO_FRAME& a = XoloFrames[XoloPlayIndex];
+    const XOLO_FRAME& b = XoloFrames[siguiente];
+
+    float dx = b.x - a.x;
+    float dz = b.z - a.z;
+    float distancia = sqrtf(dx * dx + dz * dz);
+
+    // Caminata tranquila: aproximadamente 0.7 unidades por segundo a 60 FPS.
+    // Esto evita que el Xolo recorra cada tramo demasiado deprisa.
+    XoloMaxSteps = (int)(distancia * 85.0f);
+    if (XoloMaxSteps < 90) XoloMaxSteps = 90;
+    XoloSteps = 0;
+}
+
+void inicializarXolo()
+{
+    // El Xolo inicia cerca del mariachi, ligeramente detras de el.
+    // objRotY define la direccion hacia delante: (sin(yaw), cos(yaw)).
+    XoloTrailCount = 0;
+    XoloGaitTime = 0.0f;
+    XoloSitBlend = 1.0f;
+    XoloTrailReady = true;
+
+    float yaw = glm::radians(objRotY);
+    glm::vec3 frente(sinf(yaw), 0.0f, cosf(yaw));
+    // El spawn actual del proyecto esta sobre el Muelle Rojo (altura 10.8).
+    // DoMovement actualiza objPosY al primer ciclo, pero el Xolo se inicializa
+    // antes; por eso tomamos aqui la misma altura del rectangulo de ese muelle.
+    float alturaInicial = objPosY;
+    if (objPosX >= -154.0f && objPosX <= -121.0f &&
+        objPosZ >= 7.0f && objPosZ <= 10.5f) {
+        alturaInicial = 10.8f;
+    }
+    glm::vec3 jugador(objPosX, alturaInicial - 5.7f, objPosZ);
+
+    // No colocamos al Xolo a una distancia inventada detras del jugador:
+    // ese punto podria quedar fuera del muelle o sobre el agua. Inicia en
+    // una posicion segura del propio personaje y comienza a seguir el
+    // historial real cuando el jugador ya haya recorrido suficiente camino.
+    glm::vec3 inicioXolo = jugador;
+    if (objPosX >= -154.0f && objPosX <= -121.0f &&
+        objPosZ >= 7.0f && objPosZ <= 10.5f) {
+        // En el spawn actual (Muelle Rojo), lo colocamos a un lado,
+        // dentro del mismo rectangulo transitable.
+        float candidatoX = objPosX + 3.0f;
+        if (candidatoX <= -121.5f) inicioXolo.x = candidatoX;
+    }
+
+    XoloUltimaPosJugador = jugador;
+    XoloHayPosJugadorAnterior = true;
+
+    // La trayectoria inicial solo contiene puntos del muelle/suelo conocido.
+    XoloTrail[XoloTrailCount++].posicion = inicioXolo;
+    XoloTrail[XoloTrailCount++].posicion = jugador;
+
+    xoloX = inicioXolo.x;
+    xoloY = inicioXolo.y; // Altura del suelo: mismo desplazamiento vertical que el modelo del mariachi.
+    xoloZ = inicioXolo.z;
+    xoloRotY = objRotY;
+
+    xoloPataDelIzq = 0.0f;
+    xoloPataDelDer = 0.0f;
+    xoloPataTrasIzq = 0.0f;
+    xoloPataTrasDer = 0.0f;
+    xoloCabeza = 0.0f;
+    xoloCuello = 0.0f;
+    xoloCola = 0.0f;
+    xoloCuerpoY = 0.0f;
+    xoloCuerpoRot = 0.0f;
+
+    XoloPlay = true;
+}
+
+// Busca sobre la trayectoria un punto situado cierta distancia detras
+// del jugador. Asi el perro recorre los mismos giros y puentes que el usuario.
+static glm::vec3 obtenerPuntoSeguimientoXolo(float distancia, float& rotacion)
+{
+    if (XoloTrailCount <= 0) {
+        rotacion = objRotY;
+        return glm::vec3(objPosX, objPosY - 6.2f, objPosZ);
+    }
+
+    glm::vec3 actual = XoloTrail[XoloTrailCount - 1].posicion;
+    float restante = distancia;
+
+    for (int i = XoloTrailCount - 1; i > 0; --i) {
+        glm::vec3 anterior = XoloTrail[i - 1].posicion;
+        glm::vec3 tramo = actual - anterior;
+        float longitud = glm::length(glm::vec3(tramo.x, 0.0f, tramo.z));
+
+        if (longitud > 0.0001f) {
+            if (longitud >= restante) {
+                glm::vec3 direccion = glm::normalize(glm::vec3(tramo.x, 0.0f, tramo.z));
+                glm::vec3 objetivo = actual - direccion * restante;
+                objetivo.y = anterior.y + (actual.y - anterior.y) *
+                    (1.0f - restante / longitud);
+                rotacion = glm::degrees(atan2f(direccion.x, direccion.z));
+                return objetivo;
+            }
+            restante -= longitud;
+            actual = anterior;
+        }
+        else {
+            actual = anterior;
+        }
+    }
+
+    // Si aun no existe suficiente historial, usamos el punto mas antiguo.
+    rotacion = objRotY;
+    return XoloTrail[0].posicion;
+}
+
+void animarXolo()
+{
+    if (!XoloTrailReady) return;
+
+    // La posicion vertical conserva el ajuste que ya funcionaba para el Xolo.
+    glm::vec3 jugador(objPosX, objPosY - 5.7f, objPosZ);
+    float movimientoJugador = 0.0f;
+    if (XoloHayPosJugadorAnterior) {
+        glm::vec3 cambio = jugador - XoloUltimaPosJugador;
+        movimientoJugador = glm::length(glm::vec3(cambio.x, 0.0f, cambio.z));
+    }
+    XoloUltimaPosJugador = jugador;
+    XoloHayPosJugadorAnterior = true;
+
+    bool modoSeguir = (tipoCamara == 1 || tipoCamara == 2);
+    bool jugadorCaminando = movimientoJugador > 0.002f;
+    bool xoloAvanzando = false;
+
+    if (modoSeguir) {
+        // Registrar solamente posiciones ya validadas por el movimiento y colisiones
+        // originales del mariachi.
+        glm::vec3 ultimo = XoloTrail[XoloTrailCount - 1].posicion;
+        glm::vec3 diferencia = jugador - ultimo;
+        float distanciaNueva = glm::length(glm::vec3(diferencia.x, 0.0f, diferencia.z));
+
+        if (distanciaNueva >= 0.04f) {
+            if (XoloTrailCount < XOLO_MAX_TRAIL) {
+                XoloTrail[XoloTrailCount++].posicion = jugador;
+            }
+            else {
+                for (int i = 1; i < XOLO_MAX_TRAIL; ++i)
+                    XoloTrail[i - 1] = XoloTrail[i];
+                XoloTrail[XOLO_MAX_TRAIL - 1].posicion = jugador;
+            }
+        }
+
+        float rotObjetivo = objRotY;
+        glm::vec3 objetivo = obtenerPuntoSeguimientoXolo(XoloDistanciaSeguimiento, rotObjetivo);
+        glm::vec3 posicionActual(xoloX, xoloY, xoloZ);
+        glm::vec3 diferenciaObjetivo = objetivo - posicionActual;
+        float distanciaObjetivo = glm::length(diferenciaObjetivo);
+
+        // Seguir la trayectoria suavemente, sin teletransportarse ni cortar esquinas.
+        if (distanciaObjetivo > 0.001f) {
+            float pasoMaximo = 18.0f * deltaTime;
+            float avance = (distanciaObjetivo < pasoMaximo) ? 1.0f : (pasoMaximo / distanciaObjetivo);
+            posicionActual += diferenciaObjetivo * avance;
+            xoloX = posicionActual.x;
+            xoloZ = posicionActual.z;
+        }
+
+        // Seguir la altura registrada del mariachi.
+        xoloY = objetivo.y;
+
+        float diferenciaRot = rotObjetivo - xoloRotY;
+        while (diferenciaRot > 180.0f) diferenciaRot -= 360.0f;
+        while (diferenciaRot < -180.0f) diferenciaRot += 360.0f;
+        xoloRotY += diferenciaRot * (1.0f - expf(-5.0f * deltaTime));
+
+        xoloAvanzando = distanciaObjetivo > 0.08f;
+    }
+
+    // Si el jugador cambia a cámara libre, el Xolo deja de seguirlo.
+    // No se sienta: simplemente termina el paso y se queda quieto.
+    bool caminando = modoSeguir && (jugadorCaminando || xoloAvanzando);
+
+    // Cada fila representa una pose completa del Xolo.
+    // Orden: patas delantera izq./der., trasera izq./der., cabeza,
+    // cuello, cola, elevacion del cuerpo y rotacion del cuerpo.
+    // Toda la animacion articulada y el rebote corporal se definen en estos keyframes.
+    static const float posesCaminar[8][9] = {
+        {  27.0f, -10.0f, -10.0f,  27.0f, -15.0f,  10.0f, -32.0f, 0.018f,  2.4f },
+        {  19.0f,  -3.0f,  -3.0f,  19.0f,  -8.0f,   5.0f, -14.0f, 0.014f,  1.7f },
+        {   5.0f,  12.0f,  12.0f,   5.0f,  12.0f,  -6.0f,  20.0f, 0.006f,  0.5f },
+        { -16.0f,   7.0f,   7.0f, -16.0f,  18.0f, -10.0f,  34.0f, 0.002f, -1.5f },
+        { -27.0f,  10.0f,  10.0f, -27.0f,  15.0f, -10.0f,  32.0f, 0.018f, -2.4f },
+        { -19.0f,   3.0f,   3.0f, -19.0f,   8.0f,  -5.0f,  14.0f, 0.014f, -1.7f },
+        {  -5.0f, -12.0f, -12.0f,  -5.0f, -12.0f,   6.0f, -20.0f, 0.006f, -0.5f },
+        {  16.0f,  -7.0f,  -7.0f,  16.0f, -18.0f,  10.0f, -34.0f, 0.002f,  1.5f }
+    };
+
+    // La transicion entre caminar y reposo tambien interpola hacia una pose neutral.
+    // De esta forma no se agregan oscilaciones matematicas independientes.
+    static float pesoCaminata = 0.0f;
+    const float duracionTransicion = 0.18f;
+    if (caminando) {
+        XoloGaitTime += deltaTime;
+        pesoCaminata += deltaTime / duracionTransicion;
+        if (pesoCaminata > 1.0f) pesoCaminata = 1.0f;
+    }
+    else {
+        pesoCaminata -= deltaTime / duracionTransicion;
+        if (pesoCaminata < 0.0f) pesoCaminata = 0.0f;
+    }
+
+    // Ciclo corto para que el Xolo pueda seguir el ritmo del mariachi.
+    const float duracionCiclo = 0.98f;
+    float faseCompleta = fmodf(XoloGaitTime, duracionCiclo) /
+        duracionCiclo * 8.0f;
+    int fase = (int)faseCompleta;
+    int siguiente = (fase + 1) % 8;
+    float t = faseCompleta - (float)fase;
+
+    // Interpolacion smoothstep entre las poses clave.
+    float suave = t * t * (3.0f - 2.0f * t);
+    float pesoSuave = pesoCaminata * pesoCaminata * (3.0f - 2.0f * pesoCaminata);
+
+    float pose[9];
+    for (int i = 0; i < 9; ++i) {
+        float valorInterpolado = posesCaminar[fase][i] +
+            (posesCaminar[siguiente][i] - posesCaminar[fase][i]) * suave;
+        // La pose neutral es cero; pesoSuave mezcla entre reposo y caminata.
+        pose[i] = valorInterpolado * pesoSuave;
+    }
+
+    xoloPataDelIzq = pose[0];
+    xoloPataDelDer = pose[1];
+    xoloPataTrasIzq = pose[2];
+    xoloPataTrasDer = pose[3];
+    xoloCabeza = pose[4];
+    xoloCuello = pose[5];
+    xoloCola = pose[6];
+    xoloCuerpoY = pose[7];
+    xoloCuerpoRot = pose[8];
+}
+
+// Aplica una rotacion alrededor de un pivote local sin desplazar la pieza.
+static glm::mat4 xoloRotarPivote(const glm::mat4& base,
+    const glm::vec3& pivote, float angulo, const glm::vec3& eje)
+{
+    glm::mat4 m = glm::translate(base, pivote);
+    m = glm::rotate(m, glm::radians(angulo), eje);
+    m = glm::translate(m, -pivote);
+    return m;
+}
+
+void dibujarXolo(Shader& shader, GLint modelLoc,
+    Model& tronco, Model& cuello, Model& cabeza, Model& cola,
+    Model& pataDelIzq, Model& pataDelDer,
+    Model& pataTrasIzq, Model& pataTrasDer)
+{
+    glm::mat4 raiz(1.0f);
+    // Pequeño ajuste visual de altura, sin modificar la trayectoria de seguimiento.
+    raiz = glm::translate(raiz, glm::vec3(xoloX, xoloY + 0.10f, xoloZ));
+    raiz = glm::rotate(raiz, glm::radians(xoloRotY), glm::vec3(0, 1, 0));
+    raiz = glm::scale(raiz, glm::vec3(3.0f));
+
+    glm::mat4 cuerpo = glm::translate(raiz, glm::vec3(0.0f, xoloCuerpoY, 0.0f));
+    cuerpo = xoloRotarPivote(cuerpo, glm::vec3(0.0f, 0.84f, 0.14f),
+        xoloCuerpoRot, glm::vec3(1, 0, 0));
+
+    glUniform1i(glGetUniformLocation(shader.Program, "transparency"), 0);
+
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cuerpo));
+    tronco.Draw(shader);
+
+    glm::mat4 mCuello = xoloRotarPivote(cuerpo,
+        glm::vec3(0.0f, 1.08f, 0.56f), xoloCuello, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mCuello));
+    cuello.Draw(shader);
+
+    glm::mat4 mCabeza = xoloRotarPivote(mCuello,
+        glm::vec3(0.0f, 1.30f, 0.76f), xoloCabeza, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mCabeza));
+    cabeza.Draw(shader);
+
+    glm::mat4 mCola = xoloRotarPivote(cuerpo,
+        glm::vec3(0.0f, 0.93f, -0.24f), xoloCola, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mCola));
+    cola.Draw(shader);
+
+    // Pivotes aproximados en las articulaciones de las patas (coordenadas del OBJ).
+    glm::mat4 mPata = xoloRotarPivote(cuerpo,
+        glm::vec3(0.1359f, 0.82f, 0.477f), xoloPataDelIzq, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mPata));
+    pataDelIzq.Draw(shader);
+
+    mPata = xoloRotarPivote(cuerpo,
+        glm::vec3(-0.1187f, 0.82f, 0.484f), xoloPataDelDer, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mPata));
+    pataDelDer.Draw(shader);
+
+    mPata = xoloRotarPivote(cuerpo,
+        glm::vec3(0.1064f, 0.82f, -0.355f), xoloPataTrasIzq, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mPata));
+    pataTrasIzq.Draw(shader);
+
+    mPata = xoloRotarPivote(cuerpo,
+        glm::vec3(-0.1255f, 0.82f, -0.333f), xoloPataTrasDer, glm::vec3(1, 0, 0));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(mPata));
+    pataTrasDer.Draw(shader);
 }

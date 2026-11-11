@@ -1,6 +1,6 @@
 # Blender 5.2.2 LTS
 # www.blender.org
-mtllib xoloTronco.mtl
+mtllib XoloTronco.mtl
 o tronco
 v 0.036919 0.767018 -0.374218
 v 0.047292 0.772552 -0.380976
