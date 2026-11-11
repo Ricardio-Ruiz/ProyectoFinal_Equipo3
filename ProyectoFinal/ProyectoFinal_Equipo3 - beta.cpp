@@ -156,6 +156,8 @@ FRAME KeyFrame[MAX_FRAMES];
 int FrameIndex = 0;
 bool playAnim = false;
 int playIndex = 0;
+
+
 // =====================================================
 // VARIABLES PARA LA ANIMACION DEL XOLO
 // =====================================================
@@ -286,7 +288,7 @@ GLfloat skyboxVertices[] = {
 int main()
 {
     glfwInit();
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Proyecto Final - Chinampas y Trajineras", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Proyecto Final - Xochimilco: Recorrido Virtual del Día de Muertos", nullptr, nullptr);
     if (nullptr == window) { glfwTerminate(); return EXIT_FAILURE; }
     glfwMakeContextCurrent(window);
     glfwGetFramebufferSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
