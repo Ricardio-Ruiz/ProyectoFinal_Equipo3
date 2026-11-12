@@ -11,10 +11,24 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+
+uniform float time;
+uniform int isPapelPicado;
+
+
 void main()
 {
-    gl_Position = projection * view *  model * vec4(position, 1.0f);
-    FragPos = vec3(model * vec4(position, 1.0f));
+    vec3 posAnimada = position;
+    
+    // Si el interruptor esta activo, ondulamos los vrrtices del papel picao
+    if (isPapelPicado == 1) {
+        // Onda suave que recorre la tira
+        posAnimada.x += sin(time * 3.0 + position.y * 2.0) * 0.15;
+        posAnimada.z += cos(time * 2.5 + position.x * 2.0) * 0.15;
+    }
+    
+    gl_Position = projection * view * model * vec4(posAnimada, 1.0f);
+    FragPos = vec3(model * vec4(posAnimada, 1.0f));
     Normal = mat3(transpose(inverse(model))) * normal;
     TexCoords = texCoords;
 }

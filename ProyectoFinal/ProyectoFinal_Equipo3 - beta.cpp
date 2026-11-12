@@ -1,9 +1,3 @@
-// cosas pa hacer:
-// 
-// iluminación avanzada (1 Dir, 7 Point, 2 Spot),
-// camara tipo FPS (mundo abierto), y 3 tipos de animación (Keyframes, Procedimental, Estados).
-//
-//BORRAAARRRR /\ /\ /\ /\  /\ /\ /\ /\ /\ /\ /\
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -98,13 +92,13 @@ GLfloat lastFrame = 0.0f;
 // 1. ILUMINACIÓN (1 Direccional, 7 Puntuales, 2 Spotlights)
 // =========================================================================
 glm::vec3 pointLightPositions[7] = {
-    glm::vec3(2.0f,  2.0f,  2.0f),
-    glm::vec3(-2.0f,  2.0f, -2.0f),
-    glm::vec3(4.0f,  1.5f,  0.0f),
-    glm::vec3(-4.0f,  1.5f,  0.0f),
-    glm::vec3(0.0f,  3.0f,  4.0f),
-    glm::vec3(0.0f,  3.0f, -4.0f),
-    glm::vec3(5.0f,  2.0f,  5.0f)
+    glm::vec3(-102.06f,  13.69f,  -3.6f),
+    glm::vec3(-79.73f,  13.43f, 28.57f),
+    glm::vec3(130.39f,  13.84f,  -81.05f),
+    glm::vec3(344.87f,  20.63f,  -76.34f),
+    glm::vec3(-322.7f,  13.0f, -632.9f), //
+    glm::vec3(-292.7f,  13.0f, -632.9f),
+    glm::vec3(314.04f,  13.0f,  -78.4f)
 };
 
 glm::vec3 spotLightPositions[2] = {
@@ -125,9 +119,17 @@ glm::vec3 spotLightDirections[2] = {
 float waterOffset = 0.0f;
 float flotaY = 0.0f;
 
+float trajFloteY = 0.0f;            // Movimiento arriba y abajo
+float trajBalanceo = 0.0f;          // Rotación de lado a lado
+float trajRecorrido = 0.0f;         // Distancia para las trajineras lejanas
+
 // B) Máquina de Estados (Ej. Ciclo de día/noche o compuertas)
 int estadoDiaNoche = 0; // 0=Día, 1=Tarde, 2=Noche
 bool activarLinterna = true;
+
+        // Máquina de Estados: Recorrido Trajinera Lejana
+glm::vec3 posTrajLejana = glm::vec3(-142.35f, 5.0f, 98.6f); // Punto de inicio
+int estadoTrajLejana = 0; // 0 = Hacia punto 1, 1 = Hacia punto 2, 2 = Regreso a inicio
 
 // C) Keyframes (Estructura genérica para personaje principal o un objeto complejo)
 #define MAX_FRAMES 200
@@ -347,50 +349,54 @@ int main()
     // CARGA DE MODELOS (Espacio para assets del proyecto)
     // =========================================================================
     Model ChinampaA((char*)"Models/ZonaA/ChinampaA.obj");
-    Model caminoA((char*)"Models/ZonaA/caminoA.obj");
-    Model arbolA((char*)"Models/ZonaA/vegetacion/arbolesA.obj");
-    Model decoA((char*)"Models/ZonaA/deco.obj");
-    Model cartel((char*)"Models/ZonaA/cartel.obj");
+        Model caminoA((char*)"Models/ZonaA/caminoA.obj");
+        Model arbolA((char*)"Models/ZonaA/vegetacion/arbolesA.obj");
+        Model decoA((char*)"Models/ZonaA/deco.obj");
+        Model cartel((char*)"Models/ZonaA/cartel.obj");
 
     Model ChinampaB((char*)"Models/ZonaB/ChinampaB.obj");
-    Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
-    Model caminoB((char*)"Models/ZonaB/caminoB.obj");
-    Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
+        Model plantasB((char*)"Models/ZonaB/vegetacion/plantas.obj");
+        Model caminoB((char*)"Models/ZonaB/caminoB.obj");
+        Model cosasB((char*)"Models/ZonaB/elementos/cosas.obj");
 
-    // Artesano de papel picado - piezas independientes para modelado jerarquico
-    Model mesaArtesano((char*)"Models/Artesano/mesaArtesano.obj");
-    Model cuerpoArtesano((char*)"Models/Artesano/cuerpoArtesano.obj");
-    Model brazoCincelArtesano((char*)"Models/Artesano/brazoCincelArtesano.obj");
-    Model brazoMartilloArtesano((char*)"Models/Artesano/brazoMartilloArtesano.obj");
-    Model arbolB((char*)"Models/ZonaB/vegetacion/arboles.obj");
+        // Artesano de papel picado - piezas independientes para modelado jerarquico
+        Model mesaArtesano((char*)"Models/Artesano/mesaArtesano.obj");
+        Model cuerpoArtesano((char*)"Models/Artesano/cuerpoArtesano.obj");
+        Model brazoCincelArtesano((char*)"Models/Artesano/brazoCincelArtesano.obj");
+        Model brazoMartilloArtesano((char*)"Models/Artesano/brazoMartilloArtesano.obj");
+
+        Model arbolB((char*)"Models/ZonaB/vegetacion/arboles.obj");
 
     Model ChinampaC((char*)"Models/ZonaC/ChinampaC.obj");
-    Model caminoC((char*)"Models/ZonaC/caminoC.obj");
-    Model ofrenda((char*)"Models/ZonaC/ofrenda.obj");
-    Model arbolC((char*)"Models/ZonaC/vegetacion/arbolesC.obj");
+        Model caminoC((char*)"Models/ZonaC/caminoC.obj");
+        Model ofrenda((char*)"Models/ZonaC/ofrenda.obj");
+        Model arbolC((char*)"Models/ZonaC/vegetacion/arbolesC.obj");
 
     Model ChinampaD((char*)"Models/ZonaD/ChinampaD.obj");
-    Model caminoD((char*)"Models/ZonaD/caminoD.obj");
-    Model arbolD((char*)"Models/ZonaD/vegetacion/arbolesC.obj");
-    Model deco((char*)"Models/ZonaD/deco.obj");
+        Model caminoD((char*)"Models/ZonaD/caminoD.obj");
+        Model arbolD((char*)"Models/ZonaD/vegetacion/arbolesC.obj");
+        Model deco((char*)"Models/ZonaD/deco.obj");
 
     Model ChinampaE((char*)"Models/ZonaE/ChinampaE.obj");
-    Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
-    Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
-    Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
-    Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
-    Model cement((char*)"Models/ZonaE/Panteon/panteonE.obj");
-    //Model pueblo4((char*)"Models/ZonaE/camino.obj");
+        Model pueblo1((char*)"Models/ZonaE/Pueblo/derecha.obj");
+        Model pueblo2((char*)"Models/ZonaE/Pueblo/arriba.obj");
+        Model pueblo3((char*)"Models/ZonaE/Pueblo/abajo.obj");
+        Model pueblo4((char*)"Models/ZonaE/Pueblo/vegetacion.obj");
+        Model cement((char*)"Models/ZonaE/Panteon/panteonE.obj");
+        //Model pueblo4((char*)"Models/ZonaE/camino.obj");
 
 
     Model Chinampas((char*)"Models/Extras-Relleno/Chinampas.obj");
-    Model hierbas((char*)"Models/Extras-Relleno/hierbas.obj");
-    Model arbolesExtra((char*)"Models/Extras-Relleno/arboles.obj");
-
+        Model hierbas((char*)"Models/Extras-Relleno/hierbas.obj");
+        Model arbolesExtra((char*)"Models/Extras-Relleno/arboles.obj");
+        Model velas((char*)"Models/Extras-Relleno/velas.obj");
+        Model picado((char*)"Models/Extras-Relleno/papepicao.obj");
 
     Model agua((char*)"Models/Rio-Canales/awa.obj");
-    Model plantasawa((char*)"Models/Rio-Canales/plantas.obj");
-    //Model Trajinera((char*)"Models/Proyecto/Trajinera.obj");
+        Model plantasawa((char*)"Models/Rio-Canales/plantas.obj");
+        Model trajineras1((char*)"Models/Rio-Canales/trajineras.obj");
+        Model trajineras2((char*)"Models/Rio-Canales/trajineras2.obj");
+        Model trajineras3((char*)"Models/Rio-Canales/trajineras3.obj");
 
     //Model Personaje((char*)"Models/Proyecto/Personaje.");
     // Carga de piezas del personaje
@@ -506,31 +512,30 @@ int main()
         GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
         glUniform3f(viewPosLoc, camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
 
-        // =========================================================================
-        // PASO DE UNIFORMES DE ILUMINACIÓN
-        // =========================================================================
+        // LUCES . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
         // Luz Direccional (Sol/Luna)
         glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
         glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 0.4f, 0.4f, 0.4f);
-        glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.8f, 0.8f, 0.8f);
+        glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.8f, 0.4f, 0.8f);
         glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.5f, 0.5f, 0.5f);
 
         // 7 Luces Puntuales (Antorchas, faroles en trajineras, etc.)
+        // crea el factor de parpadeo usando el tiempo
+        float tiempoAnim = glfwGetTime();
+        float parpadeo = (sin(tiempoAnim * 15.0f) + cos(tiempoAnim * 23.0f) + sin(tiempoAnim * 37.0f)) / 3.0f;
+        // parpadeo para que la intensidad varie entre 60% y 100% (evitando  que la vela se apague por completo)
+        float intVela = 0.8f + (0.2f * parpadeo);
         for (int i = 0; i < 7; i++) {
             std::string number = std::to_string(i);
             glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].position").c_str()), pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z);
-
-            glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].ambient").c_str()), 0.2f, 0.1f, 0.05f);
-
-            glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].diffuse").c_str()), 0.8f, 0.4f, 0.1f);
-
-            glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].specular").c_str()), 1.0f, 0.5f, 0.2f);
-
+            glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].ambient").c_str()), 0.1f * intVela, 0.05f * intVela, 0.02f * intVela);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].diffuse").c_str()), 0.8f * intVela, 0.4f * intVela, 0.1f * intVela);
+            glUniform3f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].specular").c_str()), 1.0f * intVela, 0.5f * intVela, 0.2f * intVela);
             glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].constant").c_str()), 1.0f);
-
-            glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].linear").c_str()), 0.09f);
-
-            glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].quadratic").c_str()), 0.032f);
+                    //ALCANCE DE LA "ESFERA" (Llega al doble de distancia pero se corta abruptamente)
+            glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].linear").c_str()), 0.0045f);    // Antes era 0.09
+            glUniform1f(glGetUniformLocation(lightingShader.Program, ("pointLights[" + number + "].quadratic").c_str()), 0.0019f); // Antes era 0.032
         }
 
         // 2 Spotlights
@@ -567,9 +572,10 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(lightingShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-        // =========================================================================
-        // DIBUJADO DE MODELOS CON SUS MATRICES
-        // =========================================================================
+        
+        // DIBUJADO DE MODELOS 
+        //Carga de modelo / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+        // / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
         glm::mat4 model(1.0f);
         glm::mat4 modelTemp(1.0f);
 
@@ -581,31 +587,31 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaA.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        caminoA.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoA.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        arbolA.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolA.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        decoA.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                decoA.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        cartel.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                cartel.Draw(lightingShader);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -613,134 +619,134 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaB.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        caminoB.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoB.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        plantasB.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                plantasB.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        cosasB.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                cosasB.Draw(lightingShader);
 
-        // =============================================================
-        // ARTESANO cINCELANDO PAPEL PICADO EN ZONA B
-        // Modelado jerarquico: mesa y torso como base; brazos como hijos
-        // =============================================================
-        glm::mat4 modeloArtesano = glm::mat4(1.0f);
-        modeloArtesano = glm::translate(modeloArtesano, glm::vec3(140.0f, 12.5f, -80.0f));
-        modeloArtesano = glm::rotate(modeloArtesano, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        modeloArtesano = glm::scale(modeloArtesano, glm::vec3(5.0f));
+                // =============================================================
+                // ARTESANO cINCELANDO PAPEL PICADO EN ZONA B
+                // Modelado jerarquico: mesa y torso como base; brazos como hijos
+                // =============================================================
+                glm::mat4 modeloArtesano = glm::mat4(1.0f);
+                modeloArtesano = glm::translate(modeloArtesano, glm::vec3(140.0f, 12.5f, -80.0f));
+                modeloArtesano = glm::rotate(modeloArtesano, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                modeloArtesano = glm::scale(modeloArtesano, glm::vec3(5.0f));
 
-        // Mesa fija: elemento base del puesto de trabajo.
-        model = modeloArtesano;
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        mesaArtesano.Draw(lightingShader);
+                // Mesa fija: elemento base del puesto de trabajo.
+                model = modeloArtesano;
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                mesaArtesano.Draw(lightingShader);
 
-        // Torso fijo: padre de los dos brazos.
-        model = modeloArtesano;
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        cuerpoArtesano.Draw(lightingShader);
+                // Torso fijo: padre de los dos brazos.
+                model = modeloArtesano;
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                cuerpoArtesano.Draw(lightingShader);
 
-        // Ciclo repetitivo de trabajo. Solo controla las articulaciones del artesano.
-        float tiempoTrabajoArtesano = (float)glfwGetTime();
-        float golpeMartillo = sinf(tiempoTrabajoArtesano * 10.0f);
-        float ajusteCincel = sinf(tiempoTrabajoArtesano * 6.0f + 0.45f);
+                // Ciclo repetitivo de trabajo. Solo controla las articulaciones del artesano.
+                float tiempoTrabajoArtesano = (float)glfwGetTime();
+                float golpeMartillo = sinf(tiempoTrabajoArtesano * 10.0f);
+                float ajusteCincel = sinf(tiempoTrabajoArtesano * 6.0f + 0.45f);
 
-        // Brazo del cincel: movimiento corto para mantener el cincel sobre el papel.
-        // El pivote se expresa en las coordenadas locales originales del OBJ.
-        glm::vec3 pivoteCincel(0.02f, 1.35f, -0.20f);
-        glm::mat4 modeloBrazoCincel = modeloArtesano;
-        modeloBrazoCincel = glm::translate(modeloBrazoCincel, pivoteCincel);
-        modeloBrazoCincel = glm::rotate(modeloBrazoCincel, glm::radians(4.0f * ajusteCincel), glm::vec3(0.0f, 0.0f, 1.0f));
-        modeloBrazoCincel = glm::translate(modeloBrazoCincel, -pivoteCincel);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modeloBrazoCincel));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        brazoCincelArtesano.Draw(lightingShader);
+                // Brazo del cincel: movimiento corto para mantener el cincel sobre el papel.
+                // El pivote se expresa en las coordenadas locales originales del OBJ.
+                glm::vec3 pivoteCincel(0.02f, 1.35f, -0.20f);
+                glm::mat4 modeloBrazoCincel = modeloArtesano;
+                modeloBrazoCincel = glm::translate(modeloBrazoCincel, pivoteCincel);
+                modeloBrazoCincel = glm::rotate(modeloBrazoCincel, glm::radians(4.0f * ajusteCincel), glm::vec3(0.0f, 0.0f, 1.0f));
+                modeloBrazoCincel = glm::translate(modeloBrazoCincel, -pivoteCincel);
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modeloBrazoCincel));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                brazoCincelArtesano.Draw(lightingShader);
 
-        // Brazo del martillo: recorrido mayor para simular el golpe.
-        glm::vec3 pivoteMartillo(-0.30f, 1.38f, -0.24f);
-        glm::mat4 modeloBrazoMartillo = modeloArtesano;
-        modeloBrazoMartillo = glm::translate(modeloBrazoMartillo, pivoteMartillo);
-        modeloBrazoMartillo = glm::rotate(modeloBrazoMartillo, glm::radians(17.0f * golpeMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
-        modeloBrazoMartillo = glm::translate(modeloBrazoMartillo, -pivoteMartillo);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modeloBrazoMartillo));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        brazoMartilloArtesano.Draw(lightingShader);
+                // Brazo del martillo: recorrido mayor para simular el golpe.
+                glm::vec3 pivoteMartillo(-0.30f, 1.38f, -0.24f);
+                glm::mat4 modeloBrazoMartillo = modeloArtesano;
+                modeloBrazoMartillo = glm::translate(modeloBrazoMartillo, pivoteMartillo);
+                modeloBrazoMartillo = glm::rotate(modeloBrazoMartillo, glm::radians(17.0f * golpeMartillo), glm::vec3(0.0f, 0.0f, 1.0f));
+                modeloBrazoMartillo = glm::translate(modeloBrazoMartillo, -pivoteMartillo);
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modeloBrazoMartillo));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                brazoMartilloArtesano.Draw(lightingShader);
 
-        // Restaurar la matriz base y el estado de transparencia para los modelos siguientes.
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                // Restaurar la matriz base y el estado de transparencia para los modelos siguientes.
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                //glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         
         
-        // =============================================================
-        // SONIDO AMBIENTAL DEL ARTESANO SEGUN LA DISTANCIA
-        // =============================================================
+                // =============================================================
+                // SONIDO AMBIENTAL DEL ARTESANO SEGUN LA DISTANCIA
+                // =============================================================
 
-        static bool sonidoArtesanoActivo = false;
+                static bool sonidoArtesanoActivo = false;
 
-        // Posición del artesano
-        glm::vec3 posicionArtesano(140.0f, 12.5f, -80.0f);
+                // Posición del artesano
+                glm::vec3 posicionArtesano(140.0f, 12.5f, -80.0f);
 
-        // Posición actual del jugador
-        glm::vec3 posicionJugador = camera.GetPosition();
+                // Posición actual del jugador
+                glm::vec3 posicionJugador = camera.GetPosition();
 
-        // Calcular distancia entre el jugador y el artesano
-        float distanciaArtesano = glm::distance(
-            posicionJugador,
-            posicionArtesano
-        );
+                // Calcular distancia entre el jugador y el artesano
+                float distanciaArtesano = glm::distance(
+                    posicionJugador,
+                    posicionArtesano
+                );
 
-        // Distancia máxima para escuchar el sonido
-        float distanciaMaximaArtesano = 60.0f;
+                // Distancia máxima para escuchar el sonido
+                float distanciaMaximaArtesano = 60.0f;
 
-        // Si el jugador se acerca, iniciar el sonido
-        if (distanciaArtesano <= distanciaMaximaArtesano &&
-            !sonidoArtesanoActivo)
-        {
-            mciSendStringA(
-                "seek sonidoArtesano to start",
-                NULL, 0, NULL
-            );
+                // Si el jugador se acerca, iniciar el sonido
+                if (distanciaArtesano <= distanciaMaximaArtesano &&
+                    !sonidoArtesanoActivo)
+                {
+                    mciSendStringA(
+                        "seek sonidoArtesano to start",
+                        NULL, 0, NULL
+                    );
 
-            mciSendStringA(
-                "play sonidoArtesano repeat",
-                NULL, 0, NULL
-            );
+                    mciSendStringA(
+                        "play sonidoArtesano repeat",
+                        NULL, 0, NULL
+                    );
 
-            sonidoArtesanoActivo = true;
-        }
+                    sonidoArtesanoActivo = true;
+                }
 
-        // Si el jugador se aleja, detener el sonido
-        else if (distanciaArtesano > distanciaMaximaArtesano &&
-            sonidoArtesanoActivo)
-        {
-            mciSendStringA(
-                "stop sonidoArtesano",
-                NULL, 0, NULL
-            );
+                // Si el jugador se aleja, detener el sonido
+                else if (distanciaArtesano > distanciaMaximaArtesano &&
+                    sonidoArtesanoActivo)
+                {
+                    mciSendStringA(
+                        "stop sonidoArtesano",
+                        NULL, 0, NULL
+                    );
 
-            sonidoArtesanoActivo = false;
-        }
+                    sonidoArtesanoActivo = false;
+                }
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        arbolB.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolB.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -748,24 +754,24 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaC.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        caminoC.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoC.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        ofrenda.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                ofrenda.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        arbolC.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolC.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -773,25 +779,25 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaD.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-        caminoD.Draw(lightingShader);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                caminoD.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        arbolD.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolD.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        deco.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                deco.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -799,40 +805,40 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         ChinampaE.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo1.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo1.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo2.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo2.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo3.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo3.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        pueblo4.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                pueblo4.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        cement.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                cement.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
         //// Ofrenda de la Zona C
         //model = glm::mat4(1.0f);
@@ -847,19 +853,37 @@ int main()
         glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
         Chinampas.Draw(lightingShader);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        hierbas.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                hierbas.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        arbolesExtra.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                arbolesExtra.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                velas.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                    //ON al viento y mandamos el tiempo
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "isPapelPicado"), 1);
+                glUniform1f(glGetUniformLocation(lightingShader.Program, "time"), glfwGetTime());
+                picado.Draw(lightingShader);
+                    //OFF al viento y limpiamos la transparencia
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "isPapelPicado"), 0);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 
         /*model = glm::mat4(1.0f);
@@ -882,12 +906,35 @@ int main()
         // Reseteamos el uvOffset a 0.0f para que no afecte a las chinampas ni al mariachi
         glUniform1f(glGetUniformLocation(lightingShader.Program, "uvOffset"), 0.0f);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-        plantasawa.Draw(lightingShader);
-        glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+                plantasawa.Draw(lightingShader);
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, 0.0f + trajFloteY, 0.0f));              //sube baja
+                model = glm::rotate(model, glm::radians(trajBalanceo), glm::vec3(0.0f, 0.0f, 1.0f)); // Balanceo lateral
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                trajineras1.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(0.0f, trajFloteY, 0.0f));              //sube baja
+                //model = glm::rotate(model, glm::radians(trajBalanceo), glm::vec3(0.0f, 0.0f, 1.0f)); // Balanceo lateral
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                trajineras2.Draw(lightingShader);
+
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, posTrajLejana + glm::vec3(0.0f, 0.0f , 0.0f));
+                if (estadoTrajLejana == 0) model = glm::rotate(model, glm::radians(330.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                else if (estadoTrajLejana == 1) model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                else if (estadoTrajLejana == 2) model = glm::rotate(model, glm::radians(270.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+                trajineras3.Draw(lightingShader);
 
         //// 3. Animación Procedimental (Trajinera flotando)
         //model = glm::mat4(1.0f);
@@ -1045,6 +1092,31 @@ void Animation() {
     flotaY = sin(glfwGetTime() * 3.0f) * 0.3f;
     //flotaY = sin(glfwGetTime() * 1.2f) * 0.05f;
 
+    //trajioneras
+    trajFloteY = sin(glfwGetTime() * 2.0f) * 0.15f;
+    trajBalanceo = cos(glfwGetTime() * 1.5f) * 2.5f;
+    trajRecorrido = sin(glfwGetTime() * 0.1f) * 100.0f;
+    // --------------------------------------
+
+
+    // MÁQUINA DE ESTADOS: TRAJINERA LEJANA AQUÍ:
+    glm::vec3 punto0(-142.35f, 5.0f, 90.6f);
+    glm::vec3 punto1(790.9f, 5.0f, 380.3f);
+    glm::vec3 punto2(-158.48f, 5.0f, 663.39f);
+
+    glm::vec3 destinoActual;
+    if (estadoTrajLejana == 0) destinoActual = punto1;
+    else if (estadoTrajLejana == 1) destinoActual = punto2;
+    else if (estadoTrajLejana == 2) destinoActual = punto0;
+
+    glm::vec3 direccionTraj = glm::normalize(destinoActual - posTrajLejana);
+    float velocidadTraj = 12.0f * deltaTime;
+    posTrajLejana += direccionTraj * velocidadTraj;
+
+    if (glm::distance(posTrajLejana, destinoActual) < 1.0f) {
+        estadoTrajLejana++;
+        if (estadoTrajLejana > 2) estadoTrajLejana = 0;
+    }
 
 
     // 2. Animación Keyframes
